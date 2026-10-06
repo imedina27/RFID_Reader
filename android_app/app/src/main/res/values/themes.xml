@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DayNight: sigue el tema del sistema (claro/oscuro) sin código extra. -->
+    <style name="Theme.RfidReader" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/color_accent</item>
+        <item name="colorAccent">@color/color_accent</item>
+        <item name="android:windowBackground">@color/color_background</item>
+        <item name="android:colorBackground">@color/color_background</item>
+    </style>
+</resources>

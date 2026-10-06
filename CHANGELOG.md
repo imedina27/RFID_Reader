@@ -10,6 +10,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.13.0] - 2026-10-06
+
+### Añadido
+- `android_app/`: imagen corporativa Quantum Labs — tema día/noche real (`values/colors.xml` + `values-night/colors.xml`, sigue el tema del sistema sin lógica propia), logo en la barra superior, y pantalla de **Ajustes** (`SettingsActivity`, ícono de engranaje) con IP, puerto, potencia de la antena (se aplica a la lectora real) y modo simulado (persistido; aún no genera lecturas falsas).
+- **Lectura por gatillo físico, probada con hardware real**: `enableTrigger(callback, false)` con manejo manual (mismo patrón que el demo oficial `cs710aquickstart/InventoryActivity`) — lee solo mientras se mantiene presionado y se detiene al soltar. Confirmado con el log interno del SDK, ahora visible (`RfidManager.builder(...).setLogger{}`, etiqueta `RfidSDK` en Logcat).
+- Deduplicación por EPC único (`docs/funcional.md`: "acumula etiquetas únicas"): la lectora reporta el mismo tag decenas de veces por segundo; antes de este cambio una sola prueba generó 85+ filas y envíos repetidos del mismo EPC. Ahora cada etiqueta se registra y se manda una sola vez por conexión.
+
+### Corregido
+- La barra de título se traslapaba con la barra de estado del sistema (Android 15+/`targetSdk` 35+ exige manejar *edge-to-edge*) — se agregó `android:fitsSystemWindows="true"`.
+- Lectura fantasma justo al conectar: el estado del gatillo que reporta la lectora puede llegar erróneo por un instante (carrera en el handshake BLE); se resolvió esperando ~800 ms tras `onReaderReady` antes de activar el gatillo.
+
+### Documentación
+- `docs/apk.md`: gatillo físico y deduplicación marcados como verificados con hardware real; nota sobre cómo activar el logger del SDK para diagnóstico.
+
 ## [0.12.0] - 2026-10-06
 
 ### Añadido

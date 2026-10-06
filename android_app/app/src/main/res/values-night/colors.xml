@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema oscuro. Mismos nombres que values/colors.xml -->
+    <color name="color_background">#1E1E28</color>
+    <color name="color_surface">#3C3C46</color>
+    <color name="color_border">#50505A</color>
+    <color name="color_text">#F5F5FA</color>
+    <color name="color_text_muted">#8C8C94</color>
+    <color name="color_accent">#E2724B</color>
+    <color name="color_ok">#2FA36B</color>
+    <color name="color_warn">#E0902E</color>
+    <color name="color_fail">#D9534F</color>
+    <color name="color_on_accent">#1E1E28</color>
+</resources>

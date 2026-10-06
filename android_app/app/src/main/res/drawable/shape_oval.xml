@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Óvalo blanco liso: usado para la insignia de la lectora y el punto de
+     estado de cada lectura, con el color real aplicado por código
+     (backgroundTintList) según el estado (conectado/enviado/error). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@android:color/white" />
+</shape>

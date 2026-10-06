@@ -1,6 +1,8 @@
 package com.quantumlabs.rfidreader
 
 import android.app.Application
+import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import com.csl.rfidsdk.RfidManager
 
 /**
@@ -15,7 +17,14 @@ class RfidApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        rfidManager = RfidManager.create(this)
+        // El tema (oscuro/claro) sigue al sistema del telefono.
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        // Con logger: los logs internos del SDK (estado del gatillo, inventario,
+        // conexion) se ven en Logcat con la etiqueta "RfidSDK" -- necesario para
+        // diagnosticar el hardware real.
+        rfidManager = RfidManager.builder(this)
+            .setLogger { msg -> Log.d("RfidSDK", msg) }
+            .build()
     }
 
     override fun onTerminate() {

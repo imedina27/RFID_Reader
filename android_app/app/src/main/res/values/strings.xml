@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">RFID Reader</string>
+    <string name="ajustes">Ajustes</string>
+    <string name="sin_conectar">Sin conectar</string>
+    <string name="lectora_cs108">Lectora CS108-2 · BLE</string>
+    <string name="desconectado">Desconectado</string>
+    <string name="etiquetas_leidas">Etiquetas leídas</string>
+    <string name="conectate_primero">Lectora desconectada</string>
+    <string name="toca_para_conectar">Toca la tarjeta de arriba para conectar</string>
+
+    <!-- Ajustes -->
+    <string name="conexion_laptop">Conexión con la laptop</string>
+    <string name="ip_del_servidor">IP del servidor</string>
+    <string name="puerto">Puerto</string>
+    <string name="seccion_lectora">Lectora</string>
+    <string name="potencia_antena">Potencia de la antena</string>
+    <string name="modo_simulado">Modo simulado</string>
+    <string name="modo_simulado_sub">Prueba sin conectar la lectora</string>
+    <string name="probar_conexion">Probar conexión</string>
+    <string name="guardar">Guardar</string>
 </resources>

@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.12 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); la APK mínima (Fase 6) **probada de punta a punta con hardware real**: el S24 Ultra se conecta a la CS108-2, lee el tag real y lo manda por Wi-Fi al receptor de prueba en la laptop. Diseño detallado de pantallas (Fase 2) y el resto de Fases 6-7 (un solo EPC, gatillo, Captura/Salida a Ruta) por hacer.
+> **Estado:** v0.13 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); APK (Fase 6) con imagen corporativa, pantalla de Ajustes y **lectura por gatillo físico probada con hardware real** (conecta, lee solo mientras se mantiene presionado, acumula etiquetas únicas y las manda al receptor). Diseño detallado de pantallas (Fase 2), Captura de Tags/Salida a Ruta en la APK (Fase 7) y conectar la APK a la API real (hoy manda al receptor de prueba) por hacer.
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -173,9 +173,13 @@ RFID_Reader/
 - [x] **Instalado y probado en el S24 Ultra real contra la CS108-2 real** (2026-10-06): se conectó por BLE a "CS108Reader25EED9", leyó el tag validado `E28011C0A500007042D701FB` repetidamente y lo mandó por Wi-Fi al receptor de prueba en la laptop — confirmado viendo la lectura llegar a `tools/tag_receiver.py`.
   - Se agregó persistencia (`SharedPreferences`) del campo IP:puerto para no tener que volver a escribirlo cada vez que se abre la app.
   - **Ojo para la próxima prueba:** si no llegan lecturas aunque la IP sea correcta, revisar que no haya **dos** procesos escuchando el puerto 5000 a la vez (`netstat -ano | findstr :5000`) — pasó que una instancia vieja de `windows_app/main.py` seguía corriendo de una prueba anterior y se quedaba con las peticiones en vez del receptor.
-- [ ] Lectura de un solo EPC (parabrisas, el de mayor RSSI) — hoy el inventario reporta todos los tags que ve.
-- [ ] Gatillo físico (el SDK ya trae `enableTrigger()`, falta usarlo) y `SimulatedSource` (modo sin hardware).
-- [ ] Ajuste de potencia desde la UI (el SDK ya lo soporta: `configure().powerLevel(n)`).
+- [x] **Imagen corporativa Quantum Labs y pantalla de Ajustes** (2026-10-06): tema día/noche real (`values/colors.xml` + `values-night/colors.xml`, sigue el tema del sistema sin lógica propia), logo en la barra superior, y `SettingsActivity` (engranaje) con IP, puerto, potencia de la antena (sí se aplica a la lectora real: `configure().powerLevel(n)`) y el interruptor de modo simulado (persistido; **aún no genera lecturas falsas**, eso queda pendiente).
+- [x] **Gatillo físico funcionando con hardware real**: `enableTrigger(callback, false)` + manejo manual (igual que el demo oficial `cs710aquickstart/InventoryActivity`) — lee únicamente mientras se mantiene presionado y se detiene al soltarlo. Se verificó con el log interno del SDK (`RfidManager.builder(...).setLogger{}`, agregado para depuración): "Trigger state changed: PRESSED/RELEASED" → "Starting/Stopping inventory".
+  - **Hallazgo real de hardware:** justo al conectar, el estado del gatillo puede llegar erróneo por un instante (carrera en el handshake BLE) y disparar una lectura fantasma; se resolvió esperando ~800 ms tras `onReaderReady` antes de activar el gatillo.
+  - **Deduplicación por EPC único** (`docs/funcional.md`: "acumula etiquetas únicas"): la lectora reporta el mismo tag decenas de veces por segundo mientras el gatillo está presionado; sin deduplicar, la lista y los envíos al servidor se saturaban con el mismo EPC repetido (se vieron 85+ envíos de un solo tag en una prueba). Ahora cada EPC se registra y se manda una sola vez por conexión.
+  - Corregido: la barra de título se traslapaba con la barra de estado del sistema (edge-to-edge, obligatorio desde `targetSdk` 35+) — se agregó `android:fitsSystemWindows="true"`.
+- [ ] Lectura de un solo EPC (parabrisas, el de mayor RSSI) — hoy el inventario reporta todos los tags que ve (incluyendo etiquetas de prueba sueltas cerca, confirmado en la prueba real).
+- [ ] `SimulatedSource` (modo sin hardware) — el interruptor en Ajustes ya existe pero todavía no simula lecturas.
 
 ### Fase 7 — APK: flujos
 - [ ] **Captura de Tags** (pallet en modo lote y camión), con salvaguardas.
@@ -249,7 +253,7 @@ RFID_Reader/
 
 ## 9. Próximos pasos inmediatos
 
-1. **Seguir la Fase 6**: filtrar a un solo EPC (parabrisas, mayor RSSI), usar el gatillo físico (`enableTrigger()`), agregar `SimulatedSource` y conectar el envío a los endpoints reales de la API (`/tags/batch`, `/tags/truck`) en vez del receptor de prueba.
+1. **Seguir la Fase 6**: filtrar a un solo EPC (parabrisas, mayor RSSI), agregar `SimulatedSource` y conectar el envío a los endpoints reales de la API (`/tags/batch`, `/tags/truck`) en vez del receptor de prueba. El gatillo físico ya quedó funcionando con hardware real.
 2. **Seguir con la Fase 5**: construir las pantallas que faltan (Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta) sobre el armazón PyQt6 ya armado.
 3. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red (hoy se probó con ambos en la misma Wi-Fi normal, falta probar con el hotspot).
 4. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.

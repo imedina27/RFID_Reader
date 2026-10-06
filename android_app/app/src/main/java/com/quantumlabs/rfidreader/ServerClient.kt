@@ -17,12 +17,25 @@ private val JSON = "application/json".toMediaType()
  * (tools/tag_receiver.py). Un solo endpoint: POST /tag { "epc": "..." }.
  */
 class ServerClient(baseUrl: String) {
-    private val url = "http://${baseUrl.trim().trimEnd('/')}/tag"
+    private val base = "http://${baseUrl.trim().trimEnd('/')}"
     private val client = OkHttpClient()
 
     fun enviarTag(epc: String, onResultado: (ok: Boolean, detalle: String) -> Unit) {
         val cuerpo = JSONObject().put("epc", epc).toString().toRequestBody(JSON)
-        val request = Request.Builder().url(url).post(cuerpo).build()
+        val request = Request.Builder().url("$base/tag").post(cuerpo).build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onResultado(false, e.message ?: "sin conexión")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use { onResultado(it.isSuccessful, "HTTP ${it.code}") }
+            }
+        })
+    }
+
+    fun probarConexion(onResultado: (ok: Boolean, detalle: String) -> Unit) {
+        val request = Request.Builder().url("$base/health").get().build()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 onResultado(false, e.message ?: "sin conexión")

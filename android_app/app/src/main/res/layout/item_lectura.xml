@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/shape_card"
+    android:layout_marginBottom="8dp"
+    android:padding="10dp">
+
+    <View
+        android:id="@+id/puntoEstado"
+        android:layout_width="9dp"
+        android:layout_height="9dp"
+        android:background="@drawable/shape_oval" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvEpc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/color_text"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tvHora"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="@color/color_text_muted" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvEstadoEnvio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11.5sp"
+        android:textStyle="bold" />
+</LinearLayout>

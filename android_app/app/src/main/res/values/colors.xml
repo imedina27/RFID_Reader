@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema claro (imagen corporativa Quantum Labs). El mismo nombre existe
+         en values-night/colors.xml con los valores oscuros: Android elige
+         uno u otro según el tema del sistema, sin lógica en el código. -->
+    <color name="color_background">#FAF8F6</color>
+    <color name="color_surface">#EDE8E2</color>
+    <color name="color_border">#DCD4C9</color>
+    <color name="color_text">#1E1E28</color>
+    <color name="color_text_muted">#6B6B73</color>
+    <color name="color_accent">#E2724B</color>
+    <color name="color_ok">#2FA36B</color>
+    <color name="color_warn">#E0902E</color>
+    <color name="color_fail">#D9534F</color>
+    <color name="color_on_accent">#1E1E28</color>
+</resources>
