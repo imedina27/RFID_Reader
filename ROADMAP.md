@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.8 — entorno (Fase 3) y backend de la app Windows (Fase 4) implementados y probados de extremo a extremo contra PostgreSQL real. Pantallas (Fase 2) y APK (Fases 6-7) por hacer.
+> **Estado:** v0.9 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso: armazón PyQt6 con imagen corporativa y pantalla Tablero funcionando, el resto de pantallas son placeholders. Diseño detallado de pantallas (Fase 2) y APK (Fases 6-7) por hacer.
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -156,10 +156,13 @@ RFID_Reader/
   netsh advfirewall firewall add rule name="RFID API" dir=in action=allow protocol=TCP localport=5000
   ```
 
-### Fase 5 — App Windows: interfaz
-- [ ] Tablero, Productos, Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta (monitor en vivo), Alarmas.
-- [ ] Aviso visual y sonoro de alarmas; refresco cada 1–2 s.
-- [ ] Aviso claro si PostgreSQL o la API no están disponibles.
+### Fase 5 — App Windows: interfaz (en progreso)
+- [x] Armazón de la ventana (PyQt6): encabezado, logo e imagen corporativa reutilizados de `Cam_Lens_V2` (`windows_app/ui/`), navegación izquierda con las 7 pantallas y tema oscuro/claro.
+- [x] Proceso único funcionando: Flask corre en un hilo secundario y la ventana en el hilo principal (`windows_app/main.py`).
+- [x] **Tablero**: estado de PostgreSQL, alarmas abiertas, camiones en ruta y salidas del día, consultando PostgreSQL directamente (no vía HTTP) con refresco cada 2 s.
+- [ ] Productos, Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta (monitor en vivo) — hoy son placeholders ("en construcción") en `windows_app/ui/pages/`.
+- [ ] Aviso visual y sonoro de alarmas (el Tablero ya muestra el conteo, falta el aviso sonoro/destacado).
+- [ ] Aviso claro si PostgreSQL o la API no están disponibles (el Tablero ya marca "No disponible" en rojo; falta un aviso más visible en el resto de pantallas).
 
 ### Fase 6 — APK: lectura
 - [ ] Proyecto Android con `csl-rfid-android-sdk`; permisos BLE; escanear, conectar y leer.
@@ -238,7 +241,7 @@ RFID_Reader/
 
 ## 9. Próximos pasos inmediatos
 
-1. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red.
-2. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
-3. **Diseñar las pantallas** (Fase 2), empezando por *Salida a Ruta* en la APK y *Boletas de salida* en Windows.
-4. Fase 5 (interfaz Windows con PyQt6) o Fase 6 (APK): backend ya está listo para integrarse con cualquiera de las dos.
+1. **Seguir con la Fase 5**: construir las pantallas que faltan (Productos, Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta) sobre el armazón PyQt6 ya armado.
+2. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red.
+3. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
+4. **Diseñar los detalles de cada pantalla** (Fase 2) a medida que se construyen, o antes si se prefiere bocetarlas todas primero.

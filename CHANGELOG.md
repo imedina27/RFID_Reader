@@ -10,6 +10,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.9.0] - 2026-10-06
+
+### Añadido
+- `windows_app/ui/`: armazón de la interfaz de escritorio (Fase 5), en **PyQt6**. Encabezado, logo e imagen corporativa de Quantum Labs reutilizados tal cual de `C:\Users\Meki\Documents\Python\Cam_Lens_V2` (no se modificó ese proyecto): `ui/images/` (header, logo, logo con texto, íconos de tema/flechas/combo), `ui/widgets/imagen_escalada.py` y la paleta de colores y hoja de estilos (`ui/styles/stylesheet.py`, recortada a lo que esta app usa) con tema oscuro/claro.
+- `windows_app/ui/app.py`: ventana principal con barra superior, logo, título, botón de tema y navegación izquierda a las 7 pantallas de `docs/funcional.md` (Tablero, Productos, Camiones, Etiquetas, Boletas de salida, Salidas a ruta, Alarmas).
+- `windows_app/ui/pages/tablero.py`: pantalla **Tablero** funcional — IP y puerto de la API, estado de PostgreSQL, alarmas abiertas, camiones en ruta y salidas del día; consulta PostgreSQL directamente (no vía HTTP) con refresco cada 2 s, según `ROADMAP.md` sección 4.1.
+- `windows_app/ui/pages/placeholder.py`: pantalla genérica "en construcción" para las 6 pantallas que aún no se implementan.
+- `windows_app/main.py`: ahora levanta la ventana PyQt6 en el hilo principal y la API Flask en un hilo secundario (proceso único, como exige `ROADMAP.md`); probado de extremo a extremo (la ventana abre y `GET /api/health` responde al mismo tiempo).
+
 ## [0.8.0] - 2026-10-06
 
 ### Añadido

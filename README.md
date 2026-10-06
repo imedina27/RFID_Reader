@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.8.0 · **Estado:** entorno (Fase 3) y backend de la app Windows (Fase 4) listos y probados de extremo a extremo; faltan las pantallas (Fase 2), la interfaz PyQt6 (Fase 5) y la APK (Fases 6-7).
+**Versión:** 0.9.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso — armazón de la ventana y pantalla Tablero funcionando, el resto de pantallas y la APK (Fases 6-7) por construir.
 
 ## Cómo funciona
 
@@ -42,6 +42,7 @@ RFID_Reader/
 ├── windows_app/
 │   ├── schema.sql  db.py  api.py  verification.py  seed.py  import_trucks.py  main.py
 │   ├── .env (no versionado)  .env.example
+│   ├── ui/                # interfaz PyQt6 (armazón + Tablero; imagen corporativa de Cam_Lens_V2)
 │   └── tests/            # pruebas pytest (verification.py)
 └── android_app/          # (por crear) proyecto Kotlin
 ```
@@ -88,10 +89,11 @@ RFID_Reader/
    netsh advfirewall firewall add rule name="RFID API" dir=in action=allow protocol=TCP localport=5000
    ```
 6. **Red:** activar el *Hotspot móvil* de Windows y conectar el celular. La IP de la laptop se muestra en el Tablero de la app (Fase 5, por construir).
-7. **Ejecutar la API:**
+7. **Ejecutar la app:**
    ```powershell
    pipenv run python windows_app/main.py
    ```
+   Abre la ventana de escritorio (PyQt6) y levanta la API en un hilo secundario, en `0.0.0.0:5000`.
 8. **Pruebas:** `pipenv run pytest windows_app` (función de verificación de la salida).
 9. **APK:** instalar `app-debug.apk` (`./gradlew assembleDebug`) y configurar IP y puerto en Ajustes — pendiente (Fases 6-7).
 
