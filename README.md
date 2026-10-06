@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.10.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); primera versión mínima de la APK (Fase 6) escrita pero sin compilar — falta instalar Android Studio/JDK 17.
+**Versión:** 0.11.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK mínima (Fase 6) **ya compila** (`app-debug.apk` verificado) — falta probarla contra la lectora y el celular reales.
 
 ## Cómo funciona
 
@@ -100,13 +100,13 @@ RFID_Reader/
 
 ## Prueba mínima de la lectora (APK, Fase 6)
 
-Primera versión de `android_app/`: conecta con la CS108-2, lee tags y manda cada EPC por HTTP. Aún **no se ha compilado** (falta instalar Android Studio/JDK 17 en esta máquina). Para probarla cuando esté lista:
+Primera versión de `android_app/`: conecta con la CS108-2, lee tags y manda cada EPC por HTTP. **Ya compila** (`./gradlew assembleDebug` genera `app-debug.apk`); falta instalar Android Studio (la IDE) y probarla contra el celular y la lectora reales. Para probarla:
 
 1. En la laptop, el receptor de pruebas (independiente de la app principal):
    ```powershell
    pipenv run python tools/tag_receiver.py
    ```
-2. Abrir `android_app/` en Android Studio, compilar (`./gradlew assembleDebug`) e instalar en el S24 Ultra.
+2. Compilar (`android_app\gradlew.bat assembleDebug`) e instalar `app-debug.apk` en el S24 Ultra (`adb install` o copiando el archivo).
 3. En la app, escribir la IP de la laptop (se ve con `ipconfig`) y el puerto (5000) y tocar "Conectar y leer".
 4. Cada EPC leído aparece en la lista de la APK y en la consola del receptor.
 

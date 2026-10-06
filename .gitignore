@@ -25,3 +25,6 @@ android_app/.idea/
 .vscode/*.log
 .DS_Store
 Thumbs.db
+
+# Estado interno de Claude Code (no es parte del proyecto)
+.claude/

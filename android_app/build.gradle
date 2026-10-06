@@ -5,7 +5,9 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:9.3.1'
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.20'
+        // Sin classpath de Kotlin: AGP 9+ trae soporte de Kotlin integrado
+        // (ver https://kotl.in/gradle/agp-built-in-kotlin). No declarar el
+        // plugin 'org.jetbrains.kotlin.android' en app/build.gradle.
     }
 }
 

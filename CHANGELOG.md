@@ -10,6 +10,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.11.0] - 2026-10-06
+
+### Añadido
+- JDK 17 (Eclipse Temurin) y las herramientas de línea de comandos del SDK de Android instaladas localmente (sin la IDE completa), para poder compilar `android_app/` sin esperar a instalar Android Studio.
+- **`android_app/` ya compila:** `./gradlew assembleDebug` genera `app-debug.apk` (~7 MB) sin errores; verificado con `aapt2 dump badging` (paquete `com.quantumlabs.rfidreader`, permisos y versiones de SDK correctos).
+
+### Corregido
+- `android_app/app/build.gradle` y `android_app/build.gradle`: quitado el plugin `org.jetbrains.kotlin.android` y su dependencia de *classpath* — desde AGP 9.0 el soporte de Kotlin viene integrado y ese plugin ya no se usa (rompía el build con un error explícito).
+- `android_app/app/build.gradle`: OkHttp bajado de 5.5.0 a **4.12.0** — la rama 5.x exige `compileSdk` 37+ y este proyecto usa 36 (igual que el SDK de la lectora).
+
 ## [0.10.0] - 2026-10-06
 
 ### Añadido

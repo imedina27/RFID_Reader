@@ -155,4 +155,7 @@ La APK debe incluir un botón que simule la lectura de un EPC (por ejemplo, uno 
 - [x] Permisos declarados en el manifest (sección 5).
 - [x] Soporte de gatillo físico: existe `enableTrigger()` en el SDK, no se probó aún con hardware real.
 - [ ] Reconexión si se pierde el Bluetooth (el SDK tiene una opción `autoReconnect` en `RfidManager.builder()`; falta probarla).
-- [ ] **Compilar y probar en el S24 Ultra real.** El código de `android_app/` se escribió contra el código fuente real del SDK (clonado y leído, no inventado) y el `.aar` de JitPack existe (`1.1.0`, HTTP 200), pero **no se ha compilado ni ejecutado todavía**: esta máquina no tiene Android Studio/JDK 17 instalados (pendiente de la Fase 3).
+- [x] **Compilar.** `./gradlew assembleDebug` genera `app-debug.apk` sin errores (JDK 17 + herramientas de línea de comandos del SDK, instalados localmente sin la IDE completa). Dos ajustes que solo salieron a la luz compilando de verdad:
+  - AGP 9+ ya no usa el plugin `org.jetbrains.kotlin.android` (Kotlin viene integrado desde AGP 9.0 — ver https://kotl.in/gradle/agp-built-in-kotlin). Se quitó de `android_app/app/build.gradle` y del classpath de `android_app/build.gradle`.
+  - OkHttp se fijó en **4.12.0** (no 5.x): la rama 5 exige `compileSdk` 37+ y este proyecto usa 36, igual que el SDK de la lectora.
+- [ ] **Probar en el S24 Ultra real** contra la lectora CS108-2 (falta instalar Android Studio para depuración USB cómoda, o usar `adb install` directo con las herramientas de línea de comandos).

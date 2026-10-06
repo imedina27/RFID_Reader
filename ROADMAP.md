@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.10 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); primera versión mínima de la APK (Fase 6: conectar + leer + mandar EPC por HTTP) escrita pero sin compilar (falta Android Studio/JDK 17 en esta máquina). Diseño detallado de pantallas (Fase 2) y el resto de Fases 6-7 por hacer.
+> **Estado:** v0.11 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); la APK mínima (Fase 6: conectar + leer + mandar EPC por HTTP) **ya compila** (`app-debug.apk` generado y verificado) — falta probarla contra la lectora y el celular reales. Diseño detallado de pantallas (Fase 2) y el resto de Fases 6-7 por hacer.
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -66,7 +66,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - [ ] Etiqueta de la lectora: banda de frecuencia (debe ser 902–928 MHz en México), modelo completo y número de serie.
 - [ ] Abrir el puerto 5000 en el firewall de Windows (requiere PowerShell como administrador; no se pudo ejecutar desde esta sesión por falta de permisos elevados).
 - [ ] Boletas de ejemplo reales para la demo (depende de clientes/camiones confirmados en la Fase 2).
-- [ ] Instalar Android Studio + JDK 17 en esta máquina y compilar `android_app/` por primera vez (nunca se ha compilado; ver Fase 6).
+- [ ] Instalar **Android Studio** (la IDE completa) para poder editar con autocompletado y depurar con el S24 Ultra conectado por USB — por ahora solo se instalaron JDK 17 y las herramientas de línea de comandos del SDK (suficiente para compilar).
 
 ### Ya resuelto
 - [x] Lectora, etiqueta, SDK, base de datos, celular y red definidos.
@@ -81,6 +81,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - [x] Backend de la app Windows (Fase 4): `schema.sql`, `db.py`, `api.py` (todos los endpoints de `docs/api.md`), `verification.py` con pruebas pytest, `seed.py`, `main.py`. Probado de extremo a extremo contra la base real (salida correcta, salida con diferencia, autorización con motivo).
 - [x] Permisos y clases exactas del SDK de Android: clonado `cslrfid/cs710s-android` (tag `v1.1.0`) y leído el código real del wrapper y del demo (`docs/apk.md`).
 - [x] **110 camiones reales** cargados con su etiqueta de parabrisas (`windows_app/import_trucks.py`, a partir del archivo de flota del usuario; 4 registros con número económico repetido se resolvieron quedándose con el más reciente).
+- [x] JDK 17 (Temurin) y las herramientas de línea de comandos del SDK de Android instaladas localmente (sin la IDE); `android_app/` compila: `app-debug.apk` generado y verificado (paquete, permisos y versiones correctas con `aapt2 dump badging`).
 
 ---
 
@@ -167,8 +168,9 @@ RFID_Reader/
 - [ ] Aviso claro si PostgreSQL o la API no están disponibles (el Tablero ya marca "No disponible" en rojo; falta un aviso más visible en el resto de pantallas).
 
 ### Fase 6 — APK: lectura (versión mínima en progreso)
-- [x] Proyecto Android (`android_app/`, Kotlin) con `csl-rfid-android-sdk` v1.1.0: conectar a la CS108-2 (escaneo BLE + conexión) y leer por inventario continuo, mandando cada EPC por HTTP a un receptor de pruebas (`tools/tag_receiver.py`, fuera de la app principal). **Escrito contra el código fuente real del SDK, pero sin compilar ni probar en hardware todavía** — esta máquina no tiene Android Studio/JDK 17 instalados.
-- [ ] Compilar (`./gradlew assembleDebug`), instalar en el S24 Ultra y probar contra la lectora real.
+- [x] Proyecto Android (`android_app/`, Kotlin) con `csl-rfid-android-sdk` v1.1.0: conectar a la CS108-2 (escaneo BLE + conexión) y leer por inventario continuo, mandando cada EPC por HTTP a un receptor de pruebas (`tools/tag_receiver.py`, fuera de la app principal).
+- [x] **Compila:** `./gradlew assembleDebug` genera `app-debug.apk` (~7 MB) sin errores. En el camino se corrigieron dos cosas que solo se descubren compilando de verdad: AGP 9+ ya no usa el plugin `org.jetbrains.kotlin.android` (Kotlin viene integrado) y OkHttp se bajó a 4.12.0 (la rama 5.x exige `compileSdk` 37+).
+- [ ] Instalar en el S24 Ultra y probar contra la lectora real (falta `adb` / depuración USB; por ahora solo hay herramientas de línea de comandos, no Android Studio).
 - [ ] Lectura de un solo EPC (parabrisas, el de mayor RSSI) — hoy el inventario reporta todos los tags que ve.
 - [ ] Gatillo físico (el SDK ya trae `enableTrigger()`, falta usarlo) y `SimulatedSource` (modo sin hardware).
 - [ ] Ajuste de potencia desde la UI (el SDK ya lo soporta: `configure().powerLevel(n)`).
@@ -245,7 +247,7 @@ RFID_Reader/
 
 ## 9. Próximos pasos inmediatos
 
-1. **Instalar Android Studio + JDK 17** y compilar `android_app/` por primera vez; probar "conectar + leer + mandar EPC" contra la CS108-2 real y `tools/tag_receiver.py`.
+1. **Instalar Android Studio** (ya compila por línea de comandos; falta la IDE para depurar con USB) y probar "conectar + leer + mandar EPC" en el S24 Ultra contra la CS108-2 real y `tools/tag_receiver.py`.
 2. **Seguir con la Fase 5**: construir las pantallas que faltan (Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta) sobre el armazón PyQt6 ya armado.
 3. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red.
 4. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
