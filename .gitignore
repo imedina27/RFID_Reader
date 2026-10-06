@@ -1,0 +1,27 @@
+# Entorno Python
+__pycache__/
+*.pyc
+.venv/
+Pipfile.lock.bak
+
+# Secretos
+windows_app/.env
+*.env
+!.env.example
+!windows_app/.env.example
+
+# Datos reales de la flota (no se versionan)
+docs/*.xlsx
+
+# Android
+android_app/.gradle/
+android_app/build/
+android_app/app/build/
+android_app/local.properties
+android_app/*.iml
+android_app/.idea/
+
+# Editor / SO
+.vscode/*.log
+.DS_Store
+Thumbs.db
