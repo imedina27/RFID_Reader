@@ -79,10 +79,15 @@ class MainActivity : AppCompatActivity() {
         adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, lecturas)
         findViewById<ListView>(R.id.lvLecturas).adapter = adapter
 
+        prefs.getString("servidor", null)?.let { etServidor.setText(it) }
+
         btnConectar.setOnClickListener { onBotonConectar() }
     }
 
+    private val prefs by lazy { getSharedPreferences("ajustes", MODE_PRIVATE) }
+
     private fun onBotonConectar() {
+        prefs.edit().putString("servidor", etServidor.text.toString()).apply()
         if (rfidManager.isConnected) {
             tvEstado.text = "Ya conectado"
             return

@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.11 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); la APK mínima (Fase 6: conectar + leer + mandar EPC por HTTP) **ya compila** (`app-debug.apk` generado y verificado) — falta probarla contra la lectora y el celular reales. Diseño detallado de pantallas (Fase 2) y el resto de Fases 6-7 por hacer.
+> **Estado:** v0.12 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); la APK mínima (Fase 6) **probada de punta a punta con hardware real**: el S24 Ultra se conecta a la CS108-2, lee el tag real y lo manda por Wi-Fi al receptor de prueba en la laptop. Diseño detallado de pantallas (Fase 2) y el resto de Fases 6-7 (un solo EPC, gatillo, Captura/Salida a Ruta) por hacer.
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -144,7 +144,7 @@ RFID_Reader/
 - [x] pipenv: `flask`, `psycopg[binary]`, `python-dotenv`, `pyqt6` (confirmado con Python 3.14) y `pytest` (dev).
 - [x] PostgreSQL: base `RFID_Reader` creada (PostgreSQL 18.6, puerto 5432, rol existente `qua_admin`).
 - [x] `windows_app/.env` (no versionado) y `windows_app/.env.example`; `.gitignore` en el repo.
-- [ ] Android Studio + JDK 17; depuración USB en el S24 Ultra y `adb devices` (pendiente, Fase 6).
+- [x] JDK 17 + `adb` funcionando con el S24 Ultra conectado por USB (depuración USB habilitada; hubo que desactivar el "Bloqueador automático" de Samsung, que la bloqueaba). Falta solo Android Studio como IDE (se puede seguir compilando e instalando por línea de comandos sin ella).
 
 ### Fase 4 — App Windows: backend ✅ (casi completa)
 - [x] `schema.sql` y `db.py` según `docs/modelo_datos.md`.
@@ -170,7 +170,9 @@ RFID_Reader/
 ### Fase 6 — APK: lectura (versión mínima en progreso)
 - [x] Proyecto Android (`android_app/`, Kotlin) con `csl-rfid-android-sdk` v1.1.0: conectar a la CS108-2 (escaneo BLE + conexión) y leer por inventario continuo, mandando cada EPC por HTTP a un receptor de pruebas (`tools/tag_receiver.py`, fuera de la app principal).
 - [x] **Compila:** `./gradlew assembleDebug` genera `app-debug.apk` (~7 MB) sin errores. En el camino se corrigieron dos cosas que solo se descubren compilando de verdad: AGP 9+ ya no usa el plugin `org.jetbrains.kotlin.android` (Kotlin viene integrado) y OkHttp se bajó a 4.12.0 (la rama 5.x exige `compileSdk` 37+).
-- [ ] Instalar en el S24 Ultra y probar contra la lectora real (falta `adb` / depuración USB; por ahora solo hay herramientas de línea de comandos, no Android Studio).
+- [x] **Instalado y probado en el S24 Ultra real contra la CS108-2 real** (2026-10-06): se conectó por BLE a "CS108Reader25EED9", leyó el tag validado `E28011C0A500007042D701FB` repetidamente y lo mandó por Wi-Fi al receptor de prueba en la laptop — confirmado viendo la lectura llegar a `tools/tag_receiver.py`.
+  - Se agregó persistencia (`SharedPreferences`) del campo IP:puerto para no tener que volver a escribirlo cada vez que se abre la app.
+  - **Ojo para la próxima prueba:** si no llegan lecturas aunque la IP sea correcta, revisar que no haya **dos** procesos escuchando el puerto 5000 a la vez (`netstat -ano | findstr :5000`) — pasó que una instancia vieja de `windows_app/main.py` seguía corriendo de una prueba anterior y se quedaba con las peticiones en vez del receptor.
 - [ ] Lectura de un solo EPC (parabrisas, el de mayor RSSI) — hoy el inventario reporta todos los tags que ve.
 - [ ] Gatillo físico (el SDK ya trae `enableTrigger()`, falta usarlo) y `SimulatedSource` (modo sin hardware).
 - [ ] Ajuste de potencia desde la UI (el SDK ya lo soporta: `configure().powerLevel(n)`).
@@ -247,8 +249,9 @@ RFID_Reader/
 
 ## 9. Próximos pasos inmediatos
 
-1. **Instalar Android Studio** (ya compila por línea de comandos; falta la IDE para depurar con USB) y probar "conectar + leer + mandar EPC" en el S24 Ultra contra la CS108-2 real y `tools/tag_receiver.py`.
+1. **Seguir la Fase 6**: filtrar a un solo EPC (parabrisas, mayor RSSI), usar el gatillo físico (`enableTrigger()`), agregar `SimulatedSource` y conectar el envío a los endpoints reales de la API (`/tags/batch`, `/tags/truck`) en vez del receptor de prueba.
 2. **Seguir con la Fase 5**: construir las pantallas que faltan (Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta) sobre el armazón PyQt6 ya armado.
-3. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red.
+3. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red (hoy se probó con ambos en la misma Wi-Fi normal, falta probar con el hotspot).
 4. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
 5. **Diseñar los detalles de cada pantalla** (Fase 2) a medida que se construyen, o antes si se prefiere bocetarlas todas primero.
+6. Instalar Android Studio cuando se quiera editar/depurar con más comodidad (no es bloqueante: ya se puede compilar, instalar y ver logs por línea de comandos).

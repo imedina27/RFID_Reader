@@ -132,7 +132,7 @@ Modo CAPTURA DE TAGS:
 ### Particularidades de Samsung One UI 8.5
 - El ahorro de batería puede cortar la conexión BLE en segundo plano: desactivar la optimización de batería para la APK (Ajustes → Aplicaciones → la APK → Batería → Sin restricciones).
 - Mantener la APK en primer plano y la pantalla encendida durante la demo.
-- Si Samsung muestra el aviso de "Bloqueador automático" o restringe la instalación del APK, permitir la instalación desde el origen usado (instalación por `adb install` evita ese paso).
+- **Bloqueador automático (confirmado 2026-10-06):** en Opciones de desarrollador, "Depuración por USB" puede aparecer apagado y en gris con la leyenda "Bloqueado por Bloqueador automático". Hay que ir a Ajustes → Seguridad y privacidad → Bloqueador automático y apagarlo (o su protección de USB) antes de que se pueda activar la depuración USB.
 
 ## 8. Generar el APK
 
@@ -158,4 +158,4 @@ La APK debe incluir un botón que simule la lectura de un EPC (por ejemplo, uno 
 - [x] **Compilar.** `./gradlew assembleDebug` genera `app-debug.apk` sin errores (JDK 17 + herramientas de línea de comandos del SDK, instalados localmente sin la IDE completa). Dos ajustes que solo salieron a la luz compilando de verdad:
   - AGP 9+ ya no usa el plugin `org.jetbrains.kotlin.android` (Kotlin viene integrado desde AGP 9.0 — ver https://kotl.in/gradle/agp-built-in-kotlin). Se quitó de `android_app/app/build.gradle` y del classpath de `android_app/build.gradle`.
   - OkHttp se fijó en **4.12.0** (no 5.x): la rama 5 exige `compileSdk` 37+ y este proyecto usa 36, igual que el SDK de la lectora.
-- [ ] **Probar en el S24 Ultra real** contra la lectora CS108-2 (falta instalar Android Studio para depuración USB cómoda, o usar `adb install` directo con las herramientas de línea de comandos).
+- [x] **Probado en el S24 Ultra real contra la CS108-2 real** (2026-10-06): conectó por BLE ("CS108Reader25EED9"), leyó repetidamente el tag validado `E28011C0A500007042D701FB` y lo mandó por Wi-Fi al receptor de prueba en la laptop. Instalado con `adb install` directo (sin Android Studio).

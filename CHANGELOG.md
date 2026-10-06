@@ -10,6 +10,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.12.0] - 2026-10-06
+
+### Añadido
+- **Primera prueba de extremo a extremo con hardware real:** el S24 Ultra (depuración USB activada, tras desactivar el "Bloqueador automático" de Samsung que la bloqueaba) instaló la APK, se conectó por BLE a la lectora CS108-2 ("CS108Reader25EED9"), leyó repetidamente el tag validado `E28011C0A500007042D701FB` y lo mandó por Wi-Fi al receptor de prueba (`tools/tag_receiver.py`) corriendo en la laptop.
+- `android_app`: persistencia del campo IP:puerto del receptor con `SharedPreferences`, para no tener que volver a escribirlo cada vez que se abre la app.
+
+### Corregido
+- `android_app/app/src/main/res/layout/activity_main.xml`: el valor por defecto del campo IP:puerto apuntaba a la IP típica del hotspot (`192.168.137.1`), que no era la red real usada en la prueba; se cambió al valor correcto para esa prueba (de cualquier forma, ahora se recuerda el último que se haya escrito).
+
+### Documentación
+- `docs/apk.md`: confirmado qué bloquea exactamente el "Bloqueador automático" de Samsung (la propia opción "Depuración por USB", no solo el origen de instalación) y cómo desbloquearlo.
+- `README.md`: nota de troubleshooting — si no llegan lecturas al receptor aunque la IP sea correcta, puede haber dos procesos escuchando el puerto 5000 a la vez (pasó con una instancia vieja de `windows_app/main.py` que había quedado corriendo).
+
 ## [0.11.0] - 2026-10-06
 
 ### Añadido

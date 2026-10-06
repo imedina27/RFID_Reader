@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.11.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK mínima (Fase 6) **ya compila** (`app-debug.apk` verificado) — falta probarla contra la lectora y el celular reales.
+**Versión:** 0.12.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK mínima (Fase 6) **probada de punta a punta con hardware real** (S24 Ultra + CS108-2).
 
 ## Cómo funciona
 
@@ -100,15 +100,17 @@ RFID_Reader/
 
 ## Prueba mínima de la lectora (APK, Fase 6)
 
-Primera versión de `android_app/`: conecta con la CS108-2, lee tags y manda cada EPC por HTTP. **Ya compila** (`./gradlew assembleDebug` genera `app-debug.apk`); falta instalar Android Studio (la IDE) y probarla contra el celular y la lectora reales. Para probarla:
+Primera versión de `android_app/`: conecta con la CS108-2, lee tags y manda cada EPC por HTTP. **Ya probada de punta a punta con hardware real** (S24 Ultra + CS108-2 + `tools/tag_receiver.py`). Para repetirla:
 
 1. En la laptop, el receptor de pruebas (independiente de la app principal):
    ```powershell
    pipenv run python tools/tag_receiver.py
    ```
-2. Compilar (`android_app\gradlew.bat assembleDebug`) e instalar `app-debug.apk` en el S24 Ultra (`adb install` o copiando el archivo).
-3. En la app, escribir la IP de la laptop (se ve con `ipconfig`) y el puerto (5000) y tocar "Conectar y leer".
+2. Compilar (`android_app\gradlew.bat assembleDebug`) e instalar `app-debug.apk` en el S24 Ultra (`adb install -r` con el celular conectado por USB y la depuración USB activada, o copiando el archivo).
+3. En la app, el campo IP:puerto recuerda el último valor escrito (`SharedPreferences`); confírmalo o corrígelo con la IP de la laptop (`ipconfig`) y el puerto 5000, y toca "Conectar y leer".
 4. Cada EPC leído aparece en la lista de la APK y en la consola del receptor.
+
+**Si no llegan lecturas aunque la IP sea correcta:** puede haber dos procesos escuchando el puerto 5000 a la vez (por ejemplo, una instancia vieja de `windows_app/main.py` que quedó corriendo). Revisa con `netstat -ano | findstr :5000` y cierra el proceso que no sea el receptor.
 
 ## Advertencias importantes
 
