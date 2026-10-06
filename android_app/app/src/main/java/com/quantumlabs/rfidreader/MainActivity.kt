@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -134,6 +135,11 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (rfidManager.isConnected) {
+            // Si se cambio la potencia en Ajustes mientras ya estaba
+            // conectado, antes se quedaba guardada pero sin aplicarse de
+            // verdad hasta la siguiente reconexion. Reaplicarla aqui cubre
+            // el caso mas comun: Ajustes -> Guardar -> regresar.
+            aplicarPotencia()
             rfidManager.enableTrigger(triggerCallback, false)
         }
     }
@@ -196,7 +202,10 @@ class MainActivity : AppCompatActivity() {
                     tvEstadoTitulo.text = "Mantén presionado el gatillo"
                     tvEstadoSub.text = "de la lectora para empezar a leer"
                     epcsVistos.clear()
+                    ultimaActualizacionVisto.clear()
                     aplicarPotencia()
+                    val bateria = rfidManager.getBatteryInfo()
+                    Log.d("RfidSDK", "Bateria de la lectora: ${rfidManager.getBatteryPercentage()}% (${bateria?.formattedVoltage ?: "?"})")
                     // Justo al conectar, el estado del gatillo que reporta la
                     // lectora puede llegar erroneo por un instante (carrera en
                     // el handshake BLE) y disparar una lectura fantasma. Se
@@ -244,11 +253,17 @@ class MainActivity : AppCompatActivity() {
     private val inventoryCallback = object : RfidInventoryCallback {
         override fun onTagRead(tag: RfidTag) {
             runOnUiThread {
-                if (!epcsVistos.add(tag.epc)) return@runOnUiThread // ya se vio y se mandó
-                agregarLectura(tag.epc)
-                val servidor = ServerClient("${Preferencias.ip(this@MainActivity)}:${Preferencias.puerto(this@MainActivity)}")
-                servidor.enviarTag(tag.epc) { ok, detalle ->
-                    runOnUiThread { actualizarEstadoEnvio(tag.epc, ok, detalle) }
+                if (epcsVistos.add(tag.epc)) {
+                    agregarLectura(tag.epc)
+                    val servidor = ServerClient("${Preferencias.ip(this@MainActivity)}:${Preferencias.puerto(this@MainActivity)}")
+                    servidor.enviarTag(tag.epc) { ok, detalle ->
+                        runOnUiThread { actualizarEstadoEnvio(tag.epc, ok, detalle) }
+                    }
+                } else {
+                    // Ya se mandó antes: no se repite el envío, pero se refresca
+                    // la hora para que se note que la lectora lo sigue viendo
+                    // (si no, parece que dejó de leer).
+                    marcarVistoDeNuevo(tag.epc)
                 }
             }
         }
@@ -274,6 +289,7 @@ class MainActivity : AppCompatActivity() {
         leyendo = false
         mostrarCirculoIdle()
         rfidManager.stopInventory()
+        adapter.notifyDataSetChanged() // refresca hora/contador finales (van con tope de 400ms mientras se lee)
     }
 
     // ---------------------------------------------------------- estado UI --
@@ -327,6 +343,25 @@ class MainActivity : AppCompatActivity() {
         lecturas.add(0, Lectura(epc, formatoHora.format(System.currentTimeMillis()), EstadoEnvio.ENVIANDO))
         adapter.notifyItemInserted(0)
         chipConteo.text = lecturas.size.toString()
+    }
+
+    private val ultimaActualizacionVisto = mutableMapOf<String, Long>()
+
+    /** Cuenta cada vez que una etiqueta ya enviada se vuelve a ver, y refresca
+     * su hora -- da evidencia de que la lectora la sigue viendo. El contador
+     * sube en cada lectura real; el refresco visual tiene tope de 400ms por
+     * EPC (la lectora reporta el mismo tag decenas de veces por segundo). */
+    private fun marcarVistoDeNuevo(epc: String) {
+        val index = lecturas.indexOfFirst { it.epc == epc }
+        if (index < 0) return
+        lecturas[index].conteo++
+
+        val ahora = System.currentTimeMillis()
+        val ultima = ultimaActualizacionVisto[epc] ?: 0L
+        if (ahora - ultima < 400) return
+        ultimaActualizacionVisto[epc] = ahora
+        lecturas[index].hora = formatoHora.format(ahora)
+        adapter.notifyItemChanged(index)
     }
 
     private fun actualizarEstadoEnvio(epc: String, ok: Boolean, detalle: String) {

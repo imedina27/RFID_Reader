@@ -17,3 +17,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "RFID_Reader"
 include ':app'
+
+// Vendorizados desde cslrfid/cs710s-android (MIT) para parchear un bug real
+// de cslibrary4a -- ver su build.gradle y CsLibrary4A.java. Ya no se usa el
+// paquete de JitPack para csl-rfid-android-sdk.
+include ':epctagcoder'
+include ':cslibrary4a'
+include ':csl-rfid-android-sdk'

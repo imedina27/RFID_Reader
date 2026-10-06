@@ -41,6 +41,20 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/tvConteo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/shape_chip"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="@color/color_text_muted" />
+
+    <TextView
         android:id="@+id/tvEstadoEnvio"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

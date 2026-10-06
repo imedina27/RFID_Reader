@@ -29,8 +29,11 @@ android {
 }
 
 dependencies {
-    // Wrapper SDK de la lectora CS108-2 (docs/apk.md, docs/lectora.md)
-    implementation 'com.github.cslrfid.cs710s-android:csl-rfid-android-sdk:1.1.0'
+    // Wrapper SDK de la lectora CS108-2 (docs/apk.md, docs/lectora.md).
+    // Vendorizado como modulo local (ya no JitPack): hay un bug real en
+    // cslibrary4a que frena mucho la lectura mientras el gatillo esta
+    // activo, y se parcheo en android_app/cslibrary4a/ -- ver su build.gradle.
+    implementation project(':csl-rfid-android-sdk')
 
     implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'

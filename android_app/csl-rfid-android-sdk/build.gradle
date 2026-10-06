@@ -1,0 +1,53 @@
+// Vendorizado desde cslrfid/cs710s-android (tag v1.1.0, licencia MIT) el
+// 2026-10-06 para parchear un bug real de cslibrary4a (ver su build.gradle).
+// Se quito el plugin 'maven-publish' y el bloque de publicacion a JitPack:
+// aqui no se publica, solo se compila como modulo local.
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.csl.rfidsdk'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 26
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        targetSdk 36
+    }
+    testOptions {
+        targetSdk 36
+    }
+}
+
+dependencies {
+    // Core SDK dependency
+    implementation project(':cslibrary4a')
+
+    // AndroidX dependencies
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.8.7'
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+}

@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.13.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK (Fase 6) tiene imagen corporativa, pantalla de Ajustes y **lectura por gatillo físico probada con hardware real** (S24 Ultra + CS108-2).
+**Versión:** 0.14.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK (Fase 6) tiene imagen corporativa, pantalla de Ajustes y **lectura por gatillo físico probada con hardware real** (S24 Ultra + CS108-2). Se parchó un bug real del SDK (vendorizado localmente) y se diagnosticó que la lectura lenta era por degradación del Bluetooth del teléfono, no de la app ni de la lectora (ver `docs/apk.md`).
 
 ## Cómo funciona
 

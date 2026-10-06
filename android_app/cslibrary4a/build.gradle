@@ -1,0 +1,55 @@
+// Vendorizado desde cslrfid/cs710s-android (tag v1.1.0, licencia MIT) el
+// 2026-10-06 para parchear un bug real: en CsLibrary4A.onRFIDEvent(), el
+// "default:" del switch sobre responseType no le asignaba nada al objeto de
+// salida (quedaba null), y el switch(responseType) de quien lo consume
+// (csl-rfid-android-sdk) tronaba con NullPointerException al toparse con un
+// paquete que no fuera inventario/fin de comando -- pasaba sobre todo con
+// los avisos de estado del gatillo mientras enableTrigger() esta activo, y
+// frenaba mucho la velocidad de lectura real. Ver CsLibrary4A.java.
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.csl.cslibrary4a'
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileSdk 36
+    defaultConfig {
+        minSdk 26
+        buildConfigField 'String', 'VERSION_NAME', "\"0\""
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            debugSymbolLevel = 'FULL'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        targetSdk 36
+    }
+    testOptions {
+        targetSdk 36
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    implementation project(path: ':epctagcoder')
+}

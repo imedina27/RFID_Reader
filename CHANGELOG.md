@@ -10,6 +10,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.14.0] - 2026-10-06
+
+### Corregido
+- **Bug real del SDK de la lectora:** `CsLibrary4A.onRFIDEvent()` dejaba `responseType` sin asignar en su rama `default:`, y el código que procesa cada lectura hacía `switch` sobre ese valor nulo, provocando un `NullPointerException` intermitente durante el inventario (`android_app/cslibrary4a/.../CsLibrary4A.java`). Se vendorizó el SDK completo (`csl-rfid-android-sdk`, `cslibrary4a`, `epctagcoder`, licencia MIT, ya no se usa JitPack) como módulos locales y se parchó para asignar `HostCmdResponseTypes.NULL` en los dos lugares donde ocurría (CS108 y CS710). Confirmado con log real: ya no truena.
+- La potencia de la antena (pantalla de Ajustes) no se volvía a aplicar si se cambiaba con la lectora ya conectada — solo se aplicaba una vez, al conectar. Se agregó la misma llamada en `onResume()`.
+- **Causa real de la lectura lenta del gatillo** (se diagnosticó por separado del bug anterior: persistía incluso después del parche, con potencia y batería confirmadas correctas): el *stack* Bluetooth del teléfono, tras muchas conexiones/desconexiones seguidas al mismo lector, negocia un intervalo de conexión cada vez más lento — no depende de la app ni se arregla reiniciando la lectora. Apagar/prender el Bluetooth del teléfono (o modo avión) restablece la velocidad normal; confirmado con hardware real.
+
+### Documentación
+- `docs/apk.md`: registrados el bug del SDK (y su parche), el fix de potencia en `onResume()`, y el hallazgo + mitigación de la lectura lenta por degradación del Bluetooth del teléfono.
+
 ## [0.13.0] - 2026-10-06
 
 ### Añadido

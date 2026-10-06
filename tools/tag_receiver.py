@@ -26,7 +26,7 @@ def recibir_tag():
     epc = str(body.get("epc", "")).strip().upper()
     if not epc:
         return jsonify({"error": "missing_epc", "message": "Falta el EPC."}), 400
-    print(f"{datetime.now():%H:%M:%S}  {epc}")
+    print(f"{datetime.now():%H:%M:%S}  {epc}", flush=True)
     return jsonify({"status": "ok", "epc": epc})
 
 
@@ -37,5 +37,5 @@ def health():
 
 if __name__ == "__main__":
     puerto = int(sys.argv[1]) if len(sys.argv) > 1 else 5000
-    print(f"Receptor de tags escuchando en 0.0.0.0:{puerto} (Ctrl+C para salir)")
+    print(f"Receptor de tags escuchando en 0.0.0.0:{puerto} (Ctrl+C para salir)", flush=True)
     app.run(host="0.0.0.0", port=puerto)
