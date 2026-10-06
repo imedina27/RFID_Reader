@@ -157,10 +157,11 @@ RFID_Reader/
   ```
 
 ### Fase 5 — App Windows: interfaz (en progreso)
-- [x] Armazón de la ventana (PyQt6): encabezado, logo e imagen corporativa reutilizados de `Cam_Lens_V2` (`windows_app/ui/`), navegación izquierda con las 7 pantallas y tema oscuro/claro.
+- [x] Armazón de la ventana (PyQt6): encabezado, logo e imagen corporativa reutilizados de `Cam_Lens_V2` (`windows_app/ui/`), navegación a la **derecha** con las 7 pantallas y tema oscuro/claro (corregido: los botones no seleccionados ya se ven bien en modo claro).
 - [x] Proceso único funcionando: Flask corre en un hilo secundario y la ventana en el hilo principal (`windows_app/main.py`).
 - [x] **Tablero**: estado de PostgreSQL, alarmas abiertas, camiones en ruta y salidas del día, consultando PostgreSQL directamente (no vía HTTP) con refresco cada 2 s.
-- [ ] Productos, Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta (monitor en vivo) — hoy son placeholders ("en construcción") en `windows_app/ui/pages/`.
+- [x] **Productos**: catálogo con alta, edición (nombre/presentación) y baja/reactivación (`active`), vía la API HTTP (`windows_app/ui/api_client.py`, `windows_app/ui/dialogs/producto_dialog.py`). La "baja" no borra el renglón (el `id` sigue referenciado por etiquetas y líneas de boleta).
+- [ ] Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta (monitor en vivo) — siguen como placeholders ("en construcción") en `windows_app/ui/pages/`.
 - [ ] Aviso visual y sonoro de alarmas (el Tablero ya muestra el conteo, falta el aviso sonoro/destacado).
 - [ ] Aviso claro si PostgreSQL o la API no están disponibles (el Tablero ya marca "No disponible" en rojo; falta un aviso más visible en el resto de pantallas).
 

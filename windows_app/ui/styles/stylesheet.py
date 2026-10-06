@@ -112,12 +112,14 @@ class StyleSheet:
            ==================================================== */
         QListWidget#nav_list {{
             background-color: {t['background']};
+            color: {t['text']};
             border: none;
             outline: none;
             font-size: 12pt;
             font-weight: 600;
         }}
         QListWidget#nav_list::item {{
+            color: {t['text']};
             padding: 10px 14px;
             border-radius: 8px;
             margin: 2px 8px;

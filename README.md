@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.9.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso — armazón de la ventana y pantalla Tablero funcionando, el resto de pantallas y la APK (Fases 6-7) por construir.
+**Versión:** 0.9.1 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso — Tablero y Productos funcionando, el resto de pantallas y la APK (Fases 6-7) por construir.
 
 ## Cómo funciona
 

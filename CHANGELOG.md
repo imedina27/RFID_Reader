@@ -10,6 +10,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.9.1] - 2026-10-06
+
+### Añadido
+- `windows_app/ui/api_client.py`: cliente HTTP de la API local (`http://127.0.0.1:5000/api`), usado por las pantallas de la interfaz.
+- `windows_app/ui/dialogs/producto_dialog.py` y `windows_app/ui/pages/productos.py`: pantalla **Productos** funcional — alta, edición (nombre/presentación) y baja/reactivación, sobre la API ya existente. "Baja" marca `active = false` (no se borra el renglón).
+
+### Cambiado
+- `windows_app/ui/app.py`: la barra de navegación pasa del lado izquierdo al **derecho** (pedido del usuario).
+- `windows_app/ui/styles/stylesheet.py`: corregido el tema claro — los elementos de navegación no seleccionados no tenían color de texto definido y no se veían.
+
 ## [0.9.0] - 2026-10-06
 
 ### Añadido

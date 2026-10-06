@@ -9,6 +9,7 @@ psycopg = {extras = ["binary"], version = "*"}
 python-dotenv = "*"
 pyqt6 = "*"
 openpyxl = "*"
+requests = "*"
 
 [dev-packages]
 pytest = "*"

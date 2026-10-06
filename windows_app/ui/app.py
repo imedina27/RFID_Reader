@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 )
 
 from ui.pages.placeholder import PlaceholderPage
+from ui.pages.productos import ProductosPage
 from ui.pages.tablero import TableroPage
 from ui.styles.stylesheet import StyleSheet
 from ui.widgets.imagen_escalada import ImagenEscalada
@@ -115,13 +116,6 @@ class MainWindow(QMainWindow):
         for item in NAV_ITEMS:
             QListWidgetItem(item, self.nav_list)
 
-        nav_frame = QWidget()
-        nav_frame.setObjectName("nav_frame")
-        nav_layout = QVBoxLayout(nav_frame)
-        nav_layout.setContentsMargins(0, 10, 0, 0)
-        nav_layout.addWidget(self.nav_list)
-        body_layout.addWidget(nav_frame)
-
         content_frame = QWidget()
         content_frame.setObjectName("content_frame")
         content_layout = QVBoxLayout(content_frame)
@@ -129,8 +123,16 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(self.stacked)
         body_layout.addWidget(content_frame, 1)
 
+        nav_frame = QWidget()
+        nav_frame.setObjectName("nav_frame")
+        nav_layout = QVBoxLayout(nav_frame)
+        nav_layout.setContentsMargins(0, 10, 0, 0)
+        nav_layout.addWidget(self.nav_list)
+        body_layout.addWidget(nav_frame)
+
+        paginas_listas = {"Tablero": TableroPage, "Productos": ProductosPage}
         for item in NAV_ITEMS:
-            page = TableroPage() if item == "Tablero" else PlaceholderPage(item)
+            page = paginas_listas[item]() if item in paginas_listas else PlaceholderPage(item)
             self.stacked.addWidget(page)
 
         self.nav_list.currentRowChanged.connect(self.stacked.setCurrentIndex)
