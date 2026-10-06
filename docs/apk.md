@@ -1,6 +1,7 @@
 # Documentación — APK Android para el CS108-2
 
 > Este documento recoge lo que el fabricante publica sobre su SDK de Android. Los puntos marcados con ⚠️ **deben verificarse en el código del demo** durante la Fase 1, porque la documentación pública consultada no detalla nombres de clases ni permisos.
+> **2026-10-06:** se clonó `cslrfid/cs710s-android` (tag `v1.1.0`) y se leyó el código real del wrapper SDK y del demo `cs710aquickstart`. Las secciones marcadas ✅ ya están verificadas contra ese código, no son suposición.
 
 ## 1. Opciones de SDK oficiales (todas con licencia MIT)
 
@@ -11,6 +12,17 @@
 | Protocolo propio (byte stream) | PDF "Bluetooth and USB Byte Stream API" (ver `lectora.md`) | Solo si se quisiera implementar BLE a mano. **No recomendado para la demo.** |
 
 **Recomendación:** usar el **wrapper SDK** (`csl-rfid-android-sdk`) y apoyarse en el código del demo `cs710aquickstart` del mismo repositorio como referencia de uso.
+
+### Clases reales del wrapper SDK ✅ (`com.csl.rfidsdk`, verificado en `v1.1.0`)
+
+- `RfidManager` — punto de entrada único. `RfidManager.create(context)` (instancia compartida a nivel `Application`, ver `QuickStartApplication`/`RfidApplication`).
+  - `startScan(RfidScanCallback)` / `stopScan()` → descubre lectoras (`RfidReader`: `getName()`, `getAddress()`, `getRssi()`).
+  - `connect(RfidReader, RfidConnectionCallback)` / `disconnect()` / `isConnected()`.
+  - `startInventory(RfidInventoryCallback)` / `stopInventory()` → `onTagRead(RfidTag)` por cada lectura; `RfidTag.getEpc()` trae el EPC (el que nos importa), también `getRssi()`, `getTid()`.
+  - `configure().powerLevel(n)...apply(RfidConfigurationCallback)` — ajuste de potencia y demás parámetros (sesión, Q, target, región).
+  - `enableTrigger(TriggerCallback, autoInventory=true)` — soporte nativo del gatillo físico (arranca/para el inventario solo); no hace falta leerlo a mano.
+- Coordenada JitPack confirmada (el `.aar` resuelve con HTTP 200): `com.github.cslrfid.cs710s-android:csl-rfid-android-sdk:1.1.0`.
+- El wrapper y el demo están en **Java**, no Kotlin — no afecta: Kotlin consume la librería igual (es un `.aar` normal). Nuestra APK se escribe en Kotlin.
 
 ### Instalación (según el README del fabricante)
 
@@ -56,14 +68,19 @@ El demo `cs710aquickstart` ejemplifica: **escaneo BLE, conexión, inventario, b�
 - Android Studio reciente y **JDK 17**.
 - Depuración USB activada y `adb devices` mostrando el celular.
 
-## 5. Permisos Android ⚠️
+## 5. Permisos Android ✅ (verificado 2026-10-06)
 
-La documentación pública consultada no los lista. Por el funcionamiento estándar de BLE en Android, lo esperable es:
+Confirmado clonando `cslrfid/cs710s-android` (tag `v1.1.0`) y leyendo el `AndroidManifest.xml` real de `cs710aquickstart`. A diferencia de lo que se suponía antes, **`ACCESS_FINE_LOCATION` sí se pide también en Android 12+** (no solo `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT`):
 
-| Versión de Android | Permisos típicos de BLE |
-|---|---|
-| **Android 12 o superior (tu S24 Ultra con Android 16)** | `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT` (en tiempo de ejecución) |
-| Android 11 o inferior (no aplica a tu celular) | `BLUETOOTH`, `BLUETOOTH_ADMIN` y `ACCESS_FINE_LOCATION` (en tiempo de ejecución) |
+```xml
+<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+    android:usesPermissionFlags="neverForLocation"
+    tools:targetApi="s" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+```
 
 Además, para hablar con la app Windows:
 
@@ -72,9 +89,11 @@ Además, para hablar con la app Windows:
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
 
-**Acción:** revisar el `AndroidManifest.xml` del demo oficial y copiar exactamente los permisos que declara.
+Esto ya está aplicado en `android_app/app/src/main/AndroidManifest.xml`.
 
 ## 6. Flujo de la APK
+
+> **Estado actual (2026-10-06):** existe una primera versión mínima en `android_app/` que solo hace "conectar → inventario continuo → mandar cada EPC por HTTP" (sin pantallas de menú, sin Salida a Ruta ni Captura de Tags todavía). El flujo completo de abajo es el objetivo de las Fases 6-7; se construye sobre esta base.
 
 ```
 Inicio (común):
@@ -128,11 +147,12 @@ Instalar en el celular con `adb install app-debug.apk` o copiando el archivo. Pa
 
 La APK debe incluir un botón que simule la lectura de un EPC (por ejemplo, uno de los TAGs cargados en la base de datos). Así se puede ensayar y presentar aunque falle el Bluetooth o no haya TAGs a mano. Se recomienda encapsular la lectora detrás de una interfaz (`RfidSource`) con dos implementaciones: `Cs108Source` y `SimulatedSource`.
 
-## 10. Puntos por verificar en el código del demo ⚠️
+## 10. Puntos por verificar en el código del demo
 
-- [ ] Clases y *callbacks* exactos para escanear, conectar e iniciar inventario.
-- [ ] Cómo se entrega el EPC y el RSSI.
-- [ ] Cómo ajustar la potencia de la antena.
-- [ ] Permisos declarados en el manifest.
-- [ ] Manejo del gatillo físico.
-- [ ] Reconexión si se pierde el Bluetooth.
+- [x] Clases y *callbacks* exactos para escanear, conectar e iniciar inventario (sección 1).
+- [x] Cómo se entrega el EPC y el RSSI (`RfidTag.getEpc()` / `getRssi()`).
+- [x] Cómo ajustar la potencia de la antena (`RfidManager.configure().powerLevel(n)`).
+- [x] Permisos declarados en el manifest (sección 5).
+- [x] Soporte de gatillo físico: existe `enableTrigger()` en el SDK, no se probó aún con hardware real.
+- [ ] Reconexión si se pierde el Bluetooth (el SDK tiene una opción `autoReconnect` en `RfidManager.builder()`; falta probarla).
+- [ ] **Compilar y probar en el S24 Ultra real.** El código de `android_app/` se escribió contra el código fuente real del SDK (clonado y leído, no inventado) y el `.aar` de JitPack existe (`1.1.0`, HTTP 200), pero **no se ha compilado ni ejecutado todavía**: esta máquina no tiene Android Studio/JDK 17 instalados (pendiente de la Fase 3).

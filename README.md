@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.9.1 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso — Tablero y Productos funcionando, el resto de pantallas y la APK (Fases 6-7) por construir.
+**Versión:** 0.10.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); primera versión mínima de la APK (Fase 6) escrita pero sin compilar — falta instalar Android Studio/JDK 17.
 
 ## Cómo funciona
 
@@ -42,9 +42,11 @@ RFID_Reader/
 ├── windows_app/
 │   ├── schema.sql  db.py  api.py  verification.py  seed.py  import_trucks.py  main.py
 │   ├── .env (no versionado)  .env.example
-│   ├── ui/                # interfaz PyQt6 (armazón + Tablero; imagen corporativa de Cam_Lens_V2)
+│   ├── ui/                # interfaz PyQt6 (armazón + Tablero + Productos; imagen corporativa de Cam_Lens_V2)
 │   └── tests/            # pruebas pytest (verification.py)
-└── android_app/          # (por crear) proyecto Kotlin
+├── android_app/          # proyecto Kotlin (conectar + leer + mandar EPC; sin compilar aún)
+└── tools/
+    └── tag_receiver.py    # receptor de prueba en consola, fuera de la app principal
 ```
 
 ## Documentación
@@ -95,7 +97,18 @@ RFID_Reader/
    ```
    Abre la ventana de escritorio (PyQt6) y levanta la API en un hilo secundario, en `0.0.0.0:5000`.
 8. **Pruebas:** `pipenv run pytest windows_app` (función de verificación de la salida).
-9. **APK:** instalar `app-debug.apk` (`./gradlew assembleDebug`) y configurar IP y puerto en Ajustes — pendiente (Fases 6-7).
+
+## Prueba mínima de la lectora (APK, Fase 6)
+
+Primera versión de `android_app/`: conecta con la CS108-2, lee tags y manda cada EPC por HTTP. Aún **no se ha compilado** (falta instalar Android Studio/JDK 17 en esta máquina). Para probarla cuando esté lista:
+
+1. En la laptop, el receptor de pruebas (independiente de la app principal):
+   ```powershell
+   pipenv run python tools/tag_receiver.py
+   ```
+2. Abrir `android_app/` en Android Studio, compilar (`./gradlew assembleDebug`) e instalar en el S24 Ultra.
+3. En la app, escribir la IP de la laptop (se ve con `ipconfig`) y el puerto (5000) y tocar "Conectar y leer".
+4. Cada EPC leído aparece en la lista de la APK y en la consola del receptor.
 
 ## Advertencias importantes
 

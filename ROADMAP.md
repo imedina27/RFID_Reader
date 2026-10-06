@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.9 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso: armazón PyQt6 con imagen corporativa y pantalla Tablero funcionando, el resto de pantallas son placeholders. Diseño detallado de pantallas (Fase 2) y APK (Fases 6-7) por hacer.
+> **Estado:** v0.10 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); primera versión mínima de la APK (Fase 6: conectar + leer + mandar EPC por HTTP) escrita pero sin compilar (falta Android Studio/JDK 17 en esta máquina). Diseño detallado de pantallas (Fase 2) y el resto de Fases 6-7 por hacer.
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -64,9 +64,9 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - [ ] **Diseño de las pantallas** de la APK y de Windows (Fase 2).
 - [ ] Supuestos de `docs/funcional.md` sección 8 (etiqueta de un solo uso, un producto por pallet, autorización con motivo sin contraseña, regreso de ruta manual).
 - [ ] Etiqueta de la lectora: banda de frecuencia (debe ser 902–928 MHz en México), modelo completo y número de serie.
-- [ ] Permisos y clases exactas del SDK (se revisan en el demo oficial en la Fase 1).
 - [ ] Abrir el puerto 5000 en el firewall de Windows (requiere PowerShell como administrador; no se pudo ejecutar desde esta sesión por falta de permisos elevados).
 - [ ] Boletas de ejemplo reales para la demo (depende de clientes/camiones confirmados en la Fase 2).
+- [ ] Instalar Android Studio + JDK 17 en esta máquina y compilar `android_app/` por primera vez (nunca se ha compilado; ver Fase 6).
 
 ### Ya resuelto
 - [x] Lectora, etiqueta, SDK, base de datos, celular y red definidos.
@@ -79,6 +79,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - [x] Compatibilidad de `psycopg[binary]` y **PyQt6** con Python 3.14 confirmada (ambos instalan e importan sin problema).
 - [x] Repositorio git inicializado, `.gitignore` y remoto configurado (`https://github.com/imedina27/RFID_Reader.git`).
 - [x] Backend de la app Windows (Fase 4): `schema.sql`, `db.py`, `api.py` (todos los endpoints de `docs/api.md`), `verification.py` con pruebas pytest, `seed.py`, `main.py`. Probado de extremo a extremo contra la base real (salida correcta, salida con diferencia, autorización con motivo).
+- [x] Permisos y clases exactas del SDK de Android: clonado `cslrfid/cs710s-android` (tag `v1.1.0`) y leído el código real del wrapper y del demo (`docs/apk.md`).
 - [x] **110 camiones reales** cargados con su etiqueta de parabrisas (`windows_app/import_trucks.py`, a partir del archivo de flota del usuario; 4 registros con número económico repetido se resolvieron quedándose con el más reciente).
 
 ---
@@ -130,9 +131,9 @@ RFID_Reader/
 - [ ] Probar si se leen pallets o camiones vecinos y a qué potencia deja de ocurrir.
 - [ ] Definir **posición estándar de la etiqueta** en el pallet.
 - [ ] Probar la lectura del parabrisas (distancia y ángulo, desde el frente del camión).
-- [ ] Clonar `cslrfid/cs710s-android`, abrir el demo `cs710aquickstart` y completar `docs/apk.md` (clases, callbacks, permisos, RSSI, potencia, gatillo).
+- [x] Clonar `cslrfid/cs710s-android`, abrir el demo `cs710aquickstart` y completar `docs/apk.md` (clases, callbacks, permisos, RSSI, potencia, gatillo) — hecho 2026-10-06.
 
-**Entregable:** resultados de las pruebas y `docs/apk.md` sin pendientes.
+**Entregable:** resultados de las pruebas físicas (sigue pendiente); `docs/apk.md` ya sin pendientes de código.
 
 ### Fase 2 — Diseño de pantallas
 - [ ] Definir con el usuario los diseños (bocetos) de las pantallas de la APK y de Windows listadas en `docs/funcional.md`, sección 6.
@@ -165,10 +166,12 @@ RFID_Reader/
 - [ ] Aviso visual y sonoro de alarmas (el Tablero ya muestra el conteo, falta el aviso sonoro/destacado).
 - [ ] Aviso claro si PostgreSQL o la API no están disponibles (el Tablero ya marca "No disponible" en rojo; falta un aviso más visible en el resto de pantallas).
 
-### Fase 6 — APK: lectura
-- [ ] Proyecto Android con `csl-rfid-android-sdk`; permisos BLE; escanear, conectar y leer.
-- [ ] Lectura de un solo EPC (parabrisas) y lectura acumulada con el gatillo.
-- [ ] Ajuste de potencia; `SimulatedSource`.
+### Fase 6 — APK: lectura (versión mínima en progreso)
+- [x] Proyecto Android (`android_app/`, Kotlin) con `csl-rfid-android-sdk` v1.1.0: conectar a la CS108-2 (escaneo BLE + conexión) y leer por inventario continuo, mandando cada EPC por HTTP a un receptor de pruebas (`tools/tag_receiver.py`, fuera de la app principal). **Escrito contra el código fuente real del SDK, pero sin compilar ni probar en hardware todavía** — esta máquina no tiene Android Studio/JDK 17 instalados.
+- [ ] Compilar (`./gradlew assembleDebug`), instalar en el S24 Ultra y probar contra la lectora real.
+- [ ] Lectura de un solo EPC (parabrisas, el de mayor RSSI) — hoy el inventario reporta todos los tags que ve.
+- [ ] Gatillo físico (el SDK ya trae `enableTrigger()`, falta usarlo) y `SimulatedSource` (modo sin hardware).
+- [ ] Ajuste de potencia desde la UI (el SDK ya lo soporta: `configure().powerLevel(n)`).
 
 ### Fase 7 — APK: flujos
 - [ ] **Captura de Tags** (pallet en modo lote y camión), con salvaguardas.
@@ -242,7 +245,8 @@ RFID_Reader/
 
 ## 9. Próximos pasos inmediatos
 
-1. **Seguir con la Fase 5**: construir las pantallas que faltan (Productos, Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta) sobre el armazón PyQt6 ya armado.
-2. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red.
-3. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
-4. **Diseñar los detalles de cada pantalla** (Fase 2) a medida que se construyen, o antes si se prefiere bocetarlas todas primero.
+1. **Instalar Android Studio + JDK 17** y compilar `android_app/` por primera vez; probar "conectar + leer + mandar EPC" contra la CS108-2 real y `tools/tag_receiver.py`.
+2. **Seguir con la Fase 5**: construir las pantallas que faltan (Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta) sobre el armazón PyQt6 ya armado.
+3. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red.
+4. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
+5. **Diseñar los detalles de cada pantalla** (Fase 2) a medida que se construyen, o antes si se prefiere bocetarlas todas primero.

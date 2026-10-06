@@ -10,6 +10,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.10.0] - 2026-10-06
+
+### Añadido
+- `android_app/`: primera versión de la APK (Kotlin), Fase 6 del `ROADMAP.md`. Se conecta a la lectora CS108-2 por BLE (`com.github.cslrfid.cs710s-android:csl-rfid-android-sdk:1.1.0`), lee tags por inventario continuo y manda cada EPC leído a un receptor HTTP configurable (IP:puerto en pantalla). Sin pantallas de menú, Salida a Ruta ni Captura de Tags todavía (Fase 7).
+- `tools/tag_receiver.py`: receptor de prueba en consola, standalone y fuera de `windows_app/` — solo imprime cada EPC recibido, sin tocar PostgreSQL ni la API principal.
+- Verificación del SDK de Android: se clonó `cslrfid/cs710s-android` (tag `v1.1.0`) y se leyó el código real del wrapper (`RfidManager` y sus *callbacks*) y del demo `cs710aquickstart`; se confirmó que el `.aar` existe en JitPack. Esto resuelve los pendientes de `docs/apk.md` marcados con ⚠️ desde la Fase 1.
+
+### Cambiado
+- `docs/apk.md`: permisos, clases y coordenada de JitPack actualizados con datos verificados (antes eran una suposición). Importante: **`ACCESS_FINE_LOCATION` sí se necesita** también en Android 12+, no solo `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT` como se pensaba.
+
 ## [0.9.1] - 2026-10-06
 
 ### Añadido
