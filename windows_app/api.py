@@ -460,7 +460,7 @@ def create_app() -> Flask:
         if not tickets:
             return jsonify({
                 "truck": truck, "alarm": "no_active_tickets",
-                "message": "El camión no tiene boletas activas.",
+                "message": "Esta unidad no tiene boletas asignadas.",
             })
         for ticket in tickets:
             ticket["lines"] = conn.execute(

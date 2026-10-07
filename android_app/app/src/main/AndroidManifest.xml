@@ -40,6 +40,36 @@
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
+        <activity
+            android:name=".CapturaTagsActivity"
+            android:label="@string/captura_de_tags"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".SalidaRutaActivity"
+            android:label="@string/salida_a_ruta"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".BoletasActivity"
+            android:label="@string/salida_a_ruta"
+            android:exported="false"
+            android:parentActivityName=".SalidaRutaActivity" />
+
+        <activity
+            android:name=".PalomeoActivity"
+            android:label="@string/salida_a_ruta"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".AutorizarActivity"
+            android:label="@string/autorizar_con_motivo"
+            android:exported="false"
+            android:parentActivityName=".PalomeoActivity" />
+
     </application>
 
 </manifest>

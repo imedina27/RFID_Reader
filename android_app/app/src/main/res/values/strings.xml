@@ -6,8 +6,71 @@
     <string name="lectora_cs108">Lectora CS108-2 · BLE</string>
     <string name="desconectado">Desconectado</string>
     <string name="etiquetas_leidas">Etiquetas leídas</string>
-    <string name="conectate_primero">Lectora desconectada</string>
-    <string name="toca_para_conectar">Toca la tarjeta de arriba para conectar</string>
+    <string name="captura_de_tags">Captura de Tags</string>
+    <string name="salida_a_ruta">Salida a Ruta</string>
+    <string name="proximamente">Disponible próximamente</string>
+
+    <!-- Captura de Tags -->
+    <string name="lectora_conectada">Lectora conectada</string>
+    <string name="leyendo_punto">Leyendo…</string>
+    <string name="epc_de_la_etiqueta">EPC de la etiqueta</string>
+    <string name="oprime_gatillo_para_leer">Oprime el gatillo para leer…</string>
+    <string name="producto">Producto</string>
+    <string name="selecciona_producto">Selecciona un producto…</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="aceptar">Aceptar</string>
+    <string name="falta_leer_tag">Primero lee una etiqueta</string>
+    <string name="falta_seleccionar_producto">Selecciona el producto</string>
+    <string name="tag_guardado">Guardado correcto</string>
+    <string name="tag_ya_existe_titulo">Atención</string>
+    <string name="no_se_pudieron_cargar_productos">No se pudieron cargar los productos</string>
+
+    <!-- Salida a Ruta -->
+    <string name="unidad_detectada_titulo">Unidad Detectada...</string>
+    <string name="esperando_parabrisas">Esperando parabrisas…</string>
+    <string name="manten_presionado_gatillo">Mantén presionado el gatillo</string>
+    <string name="cerca_del_parabrisas">cerca del parabrisas, para identificar el camión</string>
+    <string name="buscando_camion">Buscando camión…</string>
+    <string name="camion_label">Camión</string>
+    <string name="placa_label">Placa</string>
+    <string name="boletas_activas_label">Boletas activas</string>
+    <string name="no_se_detecto_etiqueta">No se detectó ninguna etiqueta, intenta de nuevo</string>
+    <string name="primero_detecta_unidad">Primero detecta una unidad</string>
+
+    <!-- Boletas activas -->
+    <string name="folio_label">Folio</string>
+    <string name="cliente_label">Cliente</string>
+    <string name="boletas_activas_de_camion">Boletas activas de este camión</string>
+    <string name="elige_boletas_sub">Elige una o varias — las que salen en este viaje</string>
+    <string name="confirmar">Confirmar</string>
+    <string name="elige_al_menos_una_boleta">Elige al menos una boleta</string>
+    <string name="no_se_pudo_abrir_salida">No se pudo abrir la salida</string>
+
+    <!-- Palomeo -->
+    <string name="palomeo_titulo">Palomeo</string>
+    <string name="palomeo_subtitulo">Mantén presionado el gatillo para leer los pallets</string>
+    <string name="cero_leidas">0 leídas</string>
+    <string name="reiniciar_lecturas">Reiniciar lecturas</string>
+    <string name="finalizar_lectura">Finalizar lectura</string>
+    <string name="lectura_no_cuadra">La lectura no cuadra con lo esperado</string>
+    <string name="salida_correcta_titulo">Salida correcta</string>
+    <string name="aviso_suave_faltante">Producto Faltante, Revisar Unidad</string>
+    <string name="aviso_duro_palomeo">Unidad con sobrantes/Faltantes. Regresar a zona de carga o revisar</string>
+    <string name="autorizar_salida">Autorizar salida</string>
+    <string name="autorizar_con_motivo">Autorizar con motivo</string>
+    <string name="no_se_pudo_finalizar">No se pudo finalizar la salida</string>
+    <string name="etiqueta_no_registrada_aviso">Etiqueta no registrada</string>
+    <string name="etiqueta_ya_despachada_aviso">Etiqueta ya despachada</string>
+
+    <!-- Autorizar con motivo -->
+    <string name="motivo_label">Motivo</string>
+    <string name="motivo_hint">Ej. Faltante autorizado por el supervisor de turno…</string>
+    <string name="autorizado_por_label">Autorizado por</string>
+    <string name="autorizado_por_hint">Nombre de quien autoriza</string>
+    <string name="autorizar_boton">Autorizar</string>
+    <string name="falta_motivo">Escribe el motivo</string>
+    <string name="falta_autorizado_por">Escribe el nombre de quien autoriza</string>
+    <string name="no_se_pudo_autorizar">No se pudo autorizar</string>
 
     <!-- Ajustes -->
     <string name="conexion_laptop">Conexión con la laptop</string>

@@ -13,4 +13,6 @@
     <color name="color_warn">#E0902E</color>
     <color name="color_fail">#D9534F</color>
     <color name="color_on_accent">#1E1E28</color>
+    <color name="color_reading">#8B5CF6</color>
+    <color name="color_on_reading">#FFFFFF</color>
 </resources>

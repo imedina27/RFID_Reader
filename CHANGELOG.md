@@ -10,6 +10,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 ### Añadido
 - *(nada por ahora)*
 
+## [0.15.0] - 2026-10-06
+
+### Añadido
+- **Menú principal de la APK**: dos botones grandes, "Captura de Tags" y "Salida a Ruta", en la pantalla de conexión (`MainActivity`), desactivados hasta que la lectora queda lista; se quitó de ahí la lista de lecturas crudas (ahora vive en cada pantalla).
+- **Captura de Tags, modo Pallet** (`CapturaTagsActivity`): lee un EPC a la vez (se corta el inventario en el primer tag nuevo), combo de productos (`GET /api/products`), guarda con `POST /api/tags/batch`. Ventana de advertencia si la etiqueta ya existe (capturada, de otro producto, de camión o despachada) y aviso "Guardado correcto" de 3 s si es nueva. El producto elegido se queda fijo entre lecturas (para capturar varios pallets seguidos sin reseleccionarlo); "Cancelar" es la única forma de volver a elegir desde cero. Simplifica a propósito el "modo lote" original de `docs/funcional.md`.
+- **Salida a Ruta completa**, en cuatro pantallas encadenadas:
+  - `SalidaRutaActivity` ("Esperando parabrisas"): mientras el gatillo está presionado se acumula el RSSI más alto visto por EPC (puede haber etiquetas de camiones vecinos cerca); al soltar se usa el EPC ganador y se busca el camión (`GET /api/dispatch/lookup/{epc}`). Si hay boletas activas, se muestran sus datos (Camión, Placa, Boletas activas) con botones Aceptar/Cancelar; si no, ventana de advertencia.
+  - `BoletasActivity` ("Boletas activas"): lista con casillas, una tarjeta por boleta (Folio, Cliente, líneas de producto); "Confirmar" abre la salida (`POST /api/dispatches`).
+  - `PalomeoActivity` ("Palomeo"): lectura continua (gatillo mantenido, etiquetas únicas acumuladas, cada una se manda de inmediato a `POST /api/dispatches/{id}/reads`), lista de productos esperado/leído con color (verde completo, amarillo falta, rojo sobra/no solicitado), "Reiniciar lecturas" y "Finalizar lectura".
+  - `AutorizarActivity` ("Autorizar salida"): motivo + nombre de quien autoriza, cierra la salida como `completada con diferencia` (`POST /api/dispatches/{id}/authorize`).
+- **Lógica de diferencia al finalizar** (decisión del usuario, ver `docs/funcional.md` "Resultado en caso de diferencia"): si sobra producto (en cualquier intento) o si solo falta y ya se había avisado antes en la misma salida, el aviso es "Unidad con sobrantes/Faltantes. Regresar a zona de carga o revisar" y "Aceptar" cancela la salida (`POST /api/dispatches/{id}/cancel`, sin tocar boletas/etiquetas/camión) y regresa al inicio de Salida a Ruta. Si solo falta y es la primera vez, el aviso es "Producto Faltante, Revisar Unidad" y "Aceptar" no cancela nada, solo deja seguir leyendo. "Autorizar salida" está disponible en los dos casos.
+- Mockups (Artifact, Design canvas) aprobados por el usuario antes de programar cada pantalla nueva: Salida a Ruta (los 4 pasos) y los ajustes pedidos sobre la marcha (datos del camión visibles, botones Aceptar/Cancelar, separación visual camión/boletas).
+
+### Cambiado
+- `windows_app/api.py`: mensaje de la alarma `no_active_tickets` cambiado a "Esta unidad no tiene boletas asignadas." (antes "El camión no tiene boletas activas."), a pedido del usuario.
+- `.gitignore`: `android_app/**/build/` en vez de solo `android_app/build/` y `android_app/app/build/`, para cubrir los módulos vendorizados nuevos.
+
+### Documentación
+- `docs/funcional.md`: Procedimiento A actualizado con la lógica real de "Aceptar"/"Autorizar salida" al finalizar con diferencia.
+- `docs/apk.md`: pseudocódigo del flujo de la APK actualizado a lo realmente construido; nuevos puntos verificados con hardware real.
+
 ## [0.14.0] - 2026-10-06
 
 ### Corregido

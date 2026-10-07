@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.14 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); APK (Fase 6) con imagen corporativa, pantalla de Ajustes y **lectura por gatillo físico probada con hardware real** (conecta, lee solo mientras se mantiene presionado, acumula etiquetas únicas y las manda al receptor). Se encontró y parchó un bug real del SDK (vendorizado localmente) y se diagnosticó la causa de la lectura lenta (degradación del Bluetooth del teléfono tras muchas conexiones seguidas, no de la app ni de la lectora). Diseño detallado de pantallas (Fase 2), Captura de Tags/Salida a Ruta en la APK (Fase 7) y conectar la APK a la API real (hoy manda al receptor de prueba) por hacer.
+> **Estado:** v0.15 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); APK (Fases 6-7) con **Captura de Tags (modo Pallet) y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real de `windows_app` (ya no manda al receptor de pruebas): identificación del camión por el EPC de mayor RSSI, selección de boletas, palomeo en vivo, Finalizar con sus dos resultados (correcta / diferencia con "Aceptar" que cancela o deja seguir leyendo según el caso, y "Autorizar salida" con motivo). Pendiente de la APK: Captura de Tags modo Camión y `SimulatedSource`. Diseño detallado de pantallas de Windows (Fase 2) y las pantallas que faltan de la Fase 5 siguen pendientes.
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -82,6 +82,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - [x] Permisos y clases exactas del SDK de Android: clonado `cslrfid/cs710s-android` (tag `v1.1.0`) y leído el código real del wrapper y del demo (`docs/apk.md`).
 - [x] **110 camiones reales** cargados con su etiqueta de parabrisas (`windows_app/import_trucks.py`, a partir del archivo de flota del usuario; 4 registros con número económico repetido se resolvieron quedándose con el más reciente).
 - [x] JDK 17 (Temurin) y las herramientas de línea de comandos del SDK de Android instaladas localmente (sin la IDE); `android_app/` compila: `app-debug.apk` generado y verificado (paquete, permisos y versiones correctas con `aapt2 dump badging`).
+- [x] **Captura de Tags (modo Pallet) y Salida a Ruta completas, probadas de punta a punta con hardware real contra la API real** (2026-10-06): ver detalle en Fases 6 y 7 y en `docs/apk.md`/`docs/funcional.md`. Incluye mockups aprobados por el usuario para cada pantalla antes de programarlas.
 
 ---
 
@@ -181,15 +182,17 @@ RFID_Reader/
 - [x] **Bug real del SDK vendorizado y parchado** (2026-10-06): `NullPointerException` intermitente durante el inventario, causado por `CsLibrary4A.onRFIDEvent()` (rama `default:` del switch interno, sin asignar `responseType`). Se vendorizó el SDK completo como módulos locales (`android_app/csl-rfid-android-sdk/`, `cslibrary4a/`, `epctagcoder/`, MIT, ya no JitPack) y se parchó en los dos lugares donde ocurría. Confirmado en log real: ya no truena.
 - [x] **Diagnóstico de la lectura lenta con el gatillo** (2026-10-06): no era el bug anterior (persistía con el parche puesto), ni la potencia (confirmada correctamente aplicada, 26.0 dBm), ni la batería (confirmada sana, 65%/3.79V). Causa real: el Bluetooth del **teléfono**, tras muchas conexiones/desconexiones seguidas al mismo lector, negocia un intervalo de conexión cada vez más lento — sobrevive a reinstalar la app o reiniciar la lectora porque vive en el sistema del celular. **Mitigación confirmada con hardware real:** apagar/prender el Bluetooth del teléfono (o modo avión) antes de una sesión larga de pruebas.
 - [x] Corregido de paso: la potencia ajustada en Ajustes solo se aplicaba una vez al conectar; ahora también se reaplica en `onResume()` si ya hay conexión activa.
-- [ ] Lectura de un solo EPC (parabrisas, el de mayor RSSI) — hoy el inventario reporta todos los tags que ve (incluyendo etiquetas de prueba sueltas cerca, confirmado en la prueba real).
+- [x] **Lectura de un solo EPC por mayor RSSI** (parabrisas, 2026-10-06): en Salida a Ruta se acumula el RSSI más alto visto por EPC mientras el gatillo está presionado y, al soltar, se usa el ganador — resuelve leer de más con etiquetas de camiones vecinos cerca.
+- [x] **Menú principal**: dos botones grandes ("Captura de Tags", "Salida a Ruta") en la pantalla de conexión, desactivados hasta que la lectora queda lista.
 - [ ] `SimulatedSource` (modo sin hardware) — el interruptor en Ajustes ya existe pero todavía no simula lecturas.
 
 ### Fase 7 — APK: flujos
-- [ ] **Captura de Tags** (pallet en modo lote y camión), con salvaguardas.
-- [ ] **Salida a Ruta:** parabrisas → boletas → escaneo y palomeo → finalizar → resultado, repetir o autorizar con motivo.
-- [ ] Pantalla de ajustes (IP, puerto, potencia, modo simulado).
-- [ ] Manejo de errores: sin red, tiempo de espera, Bluetooth desconectado.
-- [ ] Generar APK: `./gradlew assembleDebug`.
+- [x] **Captura de Tags, modo Pallet** (2026-10-06): un EPC a la vez (se corta el inventario en el primer tag nuevo), selector de producto (que se queda fijo entre lecturas), `POST /api/tags/batch` real, ventana de advertencia si la etiqueta ya existe (capturada, de otro producto, de camión o despachada) y aviso de 3 s al guardar. Simplifica el "modo lote" original de `docs/funcional.md` a pedido del usuario — la etiqueta de un solo uso y la asociación a un producto no cambian.
+- [ ] **Captura de Tags, modo Camión** (elegir camión → leer parabrisas → `POST /api/tags/truck`) — no empezado.
+- [x] **Salida a Ruta completa** (2026-10-06), probada de punta a punta con hardware real contra la API real: `SalidaRutaActivity` (parabrisas → camión encontrado/advertencia) → `BoletasActivity` (selección múltiple con casillas, `POST /dispatches`) → `PalomeoActivity` (lectura continua, palomeo con color, Reiniciar/Finalizar) → `AutorizarActivity` (motivo + nombre). Ver `docs/funcional.md` "Resultado en caso de diferencia" para la lógica de cuándo "Aceptar" cancela la salida (unidad regresa a zona de carga) o solo deja seguir leyendo.
+- [x] Pantalla de ajustes (IP, puerto, potencia, modo simulado) — hecha desde la Fase 6.
+- [ ] Manejo de errores más robusto: tiempos de espera, Bluetooth desconectado a medio palomeo (hoy hay avisos básicos, no es robusto).
+- [x] Generar APK: `./gradlew assembleDebug` — se usa en cada cambio.
 
 ### Fase 8 — Pruebas de extremo a extremo
 - [ ] Hotspot real de la demo.
@@ -245,19 +248,19 @@ RFID_Reader/
 
 ## 8. Criterios de éxito de la demo
 
-- [ ] Se capturan etiquetas de pallets (por producto) y de camiones desde la APK, y se ven en Windows.
-- [ ] Se crea una boleta en Windows y se asigna a un camión.
-- [ ] En la APK: parabrisas → boletas → lectura de pallets con el gatillo → palomeo → *Finalizar*.
-- [ ] Si cuadra: boleta `despachada`, pallets `despachados` y camión `en ruta`, visible en Windows.
-- [ ] Si no cuadra: alarma en la APK y en Windows; se puede repetir la lectura o autorizar con motivo.
-- [ ] Todo funciona sobre el hotspot, sin internet.
+- [x] Se capturan etiquetas de pallets (por producto) desde la APK — probado con hardware real, falta el modo Camión (ver Fase 7).
+- [ ] Se crea una boleta en Windows y se asigna a un camión (hoy se hace directo en la base de datos para pruebas; falta la pantalla de Boletas en Windows, Fase 5).
+- [x] En la APK: parabrisas → boletas → lectura de pallets con el gatillo → palomeo → *Finalizar* — probado de punta a punta con hardware real.
+- [x] Si cuadra: boleta `despachada`, pallets `despachados` y camión `en ruta` — confirmado en la base de datos.
+- [x] Si no cuadra: alarma registrada y la unidad regresa a la zona de carga (o se autoriza la salida con motivo) — probados ambos caminos con hardware real.
+- [ ] Todo funciona sobre el hotspot, sin internet (probado hasta ahora en wifi normal con ambos dispositivos).
 
 ---
 
 ## 9. Próximos pasos inmediatos
 
-1. **Seguir la Fase 6**: filtrar a un solo EPC (parabrisas, mayor RSSI), agregar `SimulatedSource` y conectar el envío a los endpoints reales de la API (`/tags/batch`, `/tags/truck`) en vez del receptor de prueba. El gatillo físico ya quedó funcionando con hardware real.
-2. **Seguir con la Fase 5**: construir las pantallas que faltan (Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta) sobre el armazón PyQt6 ya armado.
+1. **Terminar la Fase 7 de la APK**: Captura de Tags modo Camión (`POST /tags/truck`) y `SimulatedSource` (modo sin hardware, plan B de la demo).
+2. **Seguir con la Fase 5**: construir las pantallas que faltan (Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta — esta última ya tiene su contraparte funcionando en la APK) sobre el armazón PyQt6 ya armado.
 3. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red (hoy se probó con ambos en la misma Wi-Fi normal, falta probar con el hotspot).
 4. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
 5. **Diseñar los detalles de cada pantalla** (Fase 2) a medida que se construyen, o antes si se prefiere bocetarlas todas primero.

@@ -1,8 +1,6 @@
 package com.quantumlabs.rfidreader
 
 import android.Manifest
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -11,9 +9,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.FrameLayout
+import android.widget.Button
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,17 +46,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tarjetaConexion: android.view.View
     private lateinit var tvNombreLectora: TextView
     private lateinit var chipConexion: TextView
-    private lateinit var circuloEstado: FrameLayout
-    private lateinit var imgCirculoIcono: ImageView
-    private lateinit var tvEstadoTitulo: TextView
-    private lateinit var tvEstadoSub: TextView
     private lateinit var chipConteo: TextView
+    private lateinit var btnCapturaTags: Button
+    private lateinit var btnSalidaRuta: Button
     private lateinit var adapter: LecturasAdapter
     private val lecturas = mutableListOf<Lectura>()
     private val formatoHora = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
     private var leyendo = false
-    private var pulso: ValueAnimator? = null
     private val manejador = Handler(Looper.getMainLooper())
 
     /** EPC unicos vistos en esta conexion (docs/funcional.md: "acumula
@@ -113,11 +107,9 @@ class MainActivity : AppCompatActivity() {
         tarjetaConexion = findViewById(R.id.tarjetaConexion)
         tvNombreLectora = findViewById(R.id.tvNombreLectora)
         chipConexion = findViewById(R.id.chipConexion)
-        circuloEstado = findViewById(R.id.circuloEstado)
-        imgCirculoIcono = findViewById(R.id.imgCirculoIcono)
-        tvEstadoTitulo = findViewById(R.id.tvEstadoTitulo)
-        tvEstadoSub = findViewById(R.id.tvEstadoSub)
         chipConteo = findViewById(R.id.chipConteo)
+        btnCapturaTags = findViewById(R.id.btnCapturaTags)
+        btnSalidaRuta = findViewById(R.id.btnSalidaRuta)
 
         adapter = LecturasAdapter(lecturas)
         findViewById<RecyclerView>(R.id.lvLecturas).apply {
@@ -129,6 +121,12 @@ class MainActivity : AppCompatActivity() {
         tarjetaConexion.setOnClickListener { onTarjetaConexionTocada() }
         findViewById<ImageButton>(R.id.btnAjustes).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        btnCapturaTags.setOnClickListener {
+            startActivity(Intent(this, CapturaTagsActivity::class.java))
+        }
+        btnSalidaRuta.setOnClickListener {
+            startActivity(Intent(this, SalidaRutaActivity::class.java))
         }
     }
 
@@ -199,8 +197,8 @@ class MainActivity : AppCompatActivity() {
             override fun onReaderReady(reader: RfidReader) {
                 runOnUiThread {
                     actualizarChipConexion(conectado = true)
-                    tvEstadoTitulo.text = "Mantén presionado el gatillo"
-                    tvEstadoSub.text = "de la lectora para empezar a leer"
+                    btnCapturaTags.isEnabled = true
+                    btnSalidaRuta.isEnabled = true
                     epcsVistos.clear()
                     ultimaActualizacionVisto.clear()
                     aplicarPotencia()
@@ -227,9 +225,8 @@ class MainActivity : AppCompatActivity() {
                 leyendo = false
                 runOnUiThread {
                     actualizarChipConexion(conectado = false)
-                    tvEstadoTitulo.text = "Lectora desconectada"
-                    tvEstadoSub.text = "Toca la tarjeta de arriba para conectar"
-                    mostrarCirculoIdle()
+                    btnCapturaTags.isEnabled = false
+                    btnSalidaRuta.isEnabled = false
                 }
             }
         })
@@ -281,13 +278,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun iniciarLectura() {
         leyendo = true
-        mostrarCirculoLeyendo()
         rfidManager.startInventory(inventoryCallback)
     }
 
     private fun detenerLectura() {
         leyendo = false
-        mostrarCirculoIdle()
         rfidManager.stopInventory()
         adapter.notifyDataSetChanged() // refresca hora/contador finales (van con tope de 400ms mientras se lee)
     }
@@ -304,40 +299,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun withAlpha(color: Int, alpha: Int): Int =
         (color and 0x00FFFFFF) or (alpha shl 24)
-
-    private fun mostrarCirculoIdle() {
-        circuloEstado.setBackgroundResource(R.drawable.shape_circle_idle)
-        imgCirculoIcono.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_text_muted))
-        tvEstadoTitulo.text = "Mantén presionado el gatillo"
-        tvEstadoTitulo.setTextColor(ContextCompat.getColor(this, R.color.color_text))
-        tvEstadoSub.text = "de la lectora para empezar a leer"
-        detenerPulso()
-    }
-
-    private fun mostrarCirculoLeyendo() {
-        circuloEstado.setBackgroundResource(R.drawable.shape_circle_reading)
-        imgCirculoIcono.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_on_accent))
-        tvEstadoTitulo.text = "Leyendo…"
-        tvEstadoTitulo.setTextColor(ContextCompat.getColor(this, R.color.color_accent))
-        tvEstadoSub.text = "gatillo presionado — suéltalo para detener"
-        iniciarPulso()
-    }
-
-    private fun iniciarPulso() {
-        detenerPulso()
-        pulso = ObjectAnimator.ofFloat(circuloEstado, "alpha", 1f, 0.65f).apply {
-            duration = 650
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            start()
-        }
-    }
-
-    private fun detenerPulso() {
-        pulso?.cancel()
-        pulso = null
-        circuloEstado.alpha = 1f
-    }
 
     private fun agregarLectura(epc: String) {
         lecturas.add(0, Lectura(epc, formatoHora.format(System.currentTimeMillis()), EstadoEnvio.ENVIANDO))

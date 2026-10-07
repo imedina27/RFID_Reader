@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.14.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK (Fase 6) tiene imagen corporativa, pantalla de Ajustes y **lectura por gatillo físico probada con hardware real** (S24 Ultra + CS108-2). Se parchó un bug real del SDK (vendorizado localmente) y se diagnosticó que la lectura lenta era por degradación del Bluetooth del teléfono, no de la app ni de la lectora (ver `docs/apk.md`).
+**Versión:** 0.15.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK tiene **Captura de Tags (modo Pallet) y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real (S24 Ultra + CS108-2). Falta Captura de Tags modo Camión y el modo simulado (ver `docs/apk.md` y `ROADMAP.md`).
 
 ## Cómo funciona
 
@@ -16,11 +16,11 @@ Etiqueta ~~UHF~~ CS108-2 ──Bluetooth LE──► APK Android ──WiFi / HT
 - **APK Android (Kotlin):** modos *Salida a Ruta* y *Captura de Tags*.
 - **App Windows (Python):** catálogos, boletas de salida, monitor en vivo de salidas, alarmas y captura manual.
 
-### Salida a Ruta (resumen)
-Parabrisas → boletas activas del camión (se eligen una o varias) → lectura de pallets con el gatillo y palomeo por producto → *Finalizar lectura* → si cuadra exacto: boletas `despachada` y camión `en ruta`; si no: alarma en la APK y en Windows, con **Repetir lectura** o **Autorizar con motivo**.
+### Salida a Ruta (resumen) — funcionando en la APK
+Parabrisas (EPC de mayor RSSI) → boletas activas del camión (se eligen una o varias con casillas) → lectura continua de pallets con el gatillo y palomeo por producto → *Finalizar lectura* → si cuadra exacto: boletas `despachada` y camión `en ruta`; si no cuadra, aviso con dos opciones: **Aceptar** (la unidad regresa a la zona de carga y se cancela la salida, o solo deja seguir leyendo si es la primera vez que falta algo) o **Autorizar salida** con motivo. Detalle en `docs/funcional.md`.
 
-### Captura de Tags (resumen)
-Elegir pallet (producto, modo lote) o camión → leer → guardar. El pallet recibe un **folio** consecutivo (`PLT-000123`) y su **fecha de salida de producción** (primera captura).
+### Captura de Tags (resumen) — modo Pallet funcionando en la APK
+Lee una etiqueta, elige el producto y guarda — una a la vez, con aviso si la etiqueta ya existe. El pallet recibe un **folio** consecutivo (`PLT-000123`) y su **fecha de salida de producción** (primera captura). El modo Camión (asociar una etiqueta de parabrisas nueva) todavía no está construido.
 
 ## Productos de la demo
 
@@ -44,7 +44,7 @@ RFID_Reader/
 │   ├── .env (no versionado)  .env.example
 │   ├── ui/                # interfaz PyQt6 (armazón + Tablero + Productos; imagen corporativa de Cam_Lens_V2)
 │   └── tests/            # pruebas pytest (verification.py)
-├── android_app/          # proyecto Kotlin (conectar + leer + mandar EPC; sin compilar aún)
+├── android_app/          # proyecto Kotlin: Captura de Tags (Pallet) y Salida a Ruta completas
 └── tools/
     └── tag_receiver.py    # receptor de prueba en consola, fuera de la app principal
 ```
@@ -98,21 +98,17 @@ RFID_Reader/
    Abre la ventana de escritorio (PyQt6) y levanta la API en un hilo secundario, en `0.0.0.0:5000`.
 8. **Pruebas:** `pipenv run pytest windows_app` (función de verificación de la salida).
 
-## Prueba de la lectora (APK, Fase 6)
+## Probar la APK (Captura de Tags y Salida a Ruta)
 
-`android_app/`: conecta con la CS108-2, imagen corporativa Quantum Labs, pantalla de Ajustes (engranaje) y **lee solo mientras se mantiene presionado el gatillo físico** — probado de punta a punta con hardware real (S24 Ultra + CS108-2 + `tools/tag_receiver.py`), acumulando etiquetas únicas (sin repetir la misma decenas de veces). Para repetirla:
+`android_app/`: imagen corporativa Quantum Labs, pantalla de Ajustes (engranaje), y menú principal con **Captura de Tags** y **Salida a Ruta** — ambas probadas de punta a punta con hardware real (S24 Ultra + CS108-2) contra la API real de `windows_app/main.py` (ya no se usa `tools/tag_receiver.py` para esto). Para probarla:
 
-1. En la laptop, el receptor de pruebas (independiente de la app principal):
-   ```powershell
-   pipenv run python tools/tag_receiver.py
-   ```
-2. Compilar (`android_app\gradlew.bat assembleDebug`) e instalar `app-debug.apk` en el S24 Ultra (`adb install -r` con el celular conectado por USB y la depuración USB activada, o copiando el archivo).
-3. Toca el engranaje (⚙) y confirma la IP de la laptop (`ipconfig`) y el puerto 5000 — se recuerdan entre sesiones.
-4. En la pantalla principal, toca la tarjeta de conexión para conectar con la lectora.
-5. Una vez "Conectado", **mantén presionado el gatillo** de la lectora cerca de un tag — el círculo se pone naranja ("Leyendo…"); suéltalo para detener.
-6. Cada etiqueta única leída aparece en la lista de la APK ("enviado" en verde) y en la consola del receptor.
+1. Con `windows_app/main.py` corriendo (paso 7 de arriba), compilar (`android_app\gradlew.bat assembleDebug`) e instalar `app-debug.apk` en el S24 Ultra (`adb install -r` con el celular conectado por USB y la depuración USB activada, o copiando el archivo).
+2. Toca el engranaje (⚙) y confirma la IP de la laptop (`ipconfig`) y el puerto 5000 — se recuerdan entre sesiones.
+3. En la pantalla principal, toca la tarjeta de conexión para conectar con la lectora; los botones **Captura de Tags** y **Salida a Ruta** se activan cuando queda lista.
+4. **Captura de Tags:** lee una etiqueta de pallet, elige el producto y dale Aceptar — se guarda con folio consecutivo (`PLT-000123`).
+5. **Salida a Ruta:** lee el parabrisas del camión, confirma sus boletas activas, lee los pallets con el gatillo (palomeo en vivo) y dale Finalizar.
 
-**Si no llegan lecturas aunque la IP sea correcta:** puede haber dos procesos escuchando el puerto 5000 a la vez (por ejemplo, una instancia vieja de `windows_app/main.py` que quedó corriendo). Revisa con `netstat -ano | findstr :5000` y cierra el proceso que no sea el receptor.
+**Si no llegan lecturas aunque la IP sea correcta:** puede haber dos procesos escuchando el puerto 5000 a la vez (por ejemplo, una instancia vieja de `windows_app/main.py` que quedó corriendo). Revisa con `netstat -ano | findstr :5000` y cierra el proceso que sobre.
 
 **Si "Depuración por USB" aparece bloqueada:** es el "Bloqueador automático" de Samsung — Ajustes → Seguridad y privacidad → Bloqueador automático, apágalo (o su protección de USB) antes de activar la depuración.
 

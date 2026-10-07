@@ -116,54 +116,53 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- estado del gatillo -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="20dp" />
+
+        <!-- menu principal: se activa cuando la lectora queda conectada -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-            <FrameLayout
-                android:id="@+id/circuloEstado"
-                android:layout_width="136dp"
-                android:layout_height="136dp"
-                android:background="@drawable/shape_circle_idle">
-
-                <ImageView
-                    android:id="@+id/imgCirculoIcono"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_target"
-                    android:tint="@color/color_text_muted"
-                    android:contentDescription="@null" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/tvEstadoTitulo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:text="@string/conectate_primero"
-                android:textSize="14sp"
+            <Button
+                android:id="@+id/btnCapturaTags"
+                android:layout_width="0dp"
+                android:layout_height="140dp"
+                android:layout_weight="1"
+                android:enabled="false"
+                android:background="@drawable/shape_button_menu"
+                android:gravity="center"
+                android:text="@string/captura_de_tags"
+                android:textAllCaps="false"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@color/color_text"
-                android:gravity="center" />
+                android:textColor="@color/color_button_menu_text" />
 
-            <TextView
-                android:id="@+id/tvEstadoSub"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/toca_para_conectar"
-                android:textSize="13sp"
-                android:textColor="@color/color_text_muted"
-                android:gravity="center" />
+            <View
+                android:layout_width="12dp"
+                android:layout_height="0dp" />
+
+            <Button
+                android:id="@+id/btnSalidaRuta"
+                android:layout_width="0dp"
+                android:layout_height="140dp"
+                android:layout_weight="1"
+                android:enabled="false"
+                android:background="@drawable/shape_button_menu"
+                android:gravity="center"
+                android:text="@string/salida_a_ruta"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/color_button_menu_text" />
         </LinearLayout>
 
-        <!-- etiquetas leídas -->
+        <!-- etiquetas leídas: oculto por ahora, la lectura real ahora vive en
+             las pantallas de Captura de Tags / Salida a Ruta -->
         <LinearLayout
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">

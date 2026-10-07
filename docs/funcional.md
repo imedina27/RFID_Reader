@@ -41,14 +41,19 @@ Dos aplicaciones:
 | 5 | Mantiene **presionado el gatillo** de la lectora y barre los pallets del camión (puede hacer varias pasadas) | Acumula etiquetas únicas, las envía a Windows en lotes y las **palomea** contra lo esperado, por producto |
 | 6 | Presiona **"Finalizar lectura"** | Compara lo leído contra lo esperado y decide el resultado |
 | 7a | Si **cuadra exacto** | Boletas → `despachada`; etiquetas leídas → `despachada`; camión → `en ruta`. Muestra "Salida correcta" |
-| 7b | Si **no cuadra** | Muestra la alarma en la APK con lo que sobra o falta por producto y la envía a Windows. El operador elige **Repetir lectura** o **Autorizar con motivo** |
+| 7b | Si **no cuadra** | Muestra un aviso en la APK con dos opciones: **Aceptar** o **Autorizar salida**; registra la alarma (`faltante`/`excedente`) en Windows |
 
 ### Pantalla de palomeo (paso 5)
 Una línea por producto esperado: *producto — esperados / leídos*, con marca de color: faltan (amarillo), completo (verde), sobran (rojo). Productos leídos que no están en las boletas se muestran como "no solicitado" en rojo. Contador total y botón de reinicio de lecturas. Al tocar un producto se ven los **folios** de los pallets leídos y su fecha de salida de producción.
 
-### Resultado en caso de diferencia
-- **Repetir lectura:** la salida sigue abierta. El operador puede seguir leyendo (se acumula) o reiniciar las lecturas.
-- **Autorizar con motivo:** se pide un texto con el motivo y el nombre de quien autoriza. La salida se cierra como `completada con diferencia`; boletas, etiquetas y camión cambian de estado igual que en una salida correcta, y **queda registrado** el motivo, la diferencia y la alarma.
+### Resultado en caso de diferencia (decisión 2026-10-06)
+Al presionar **Finalizar lectura** sin cuadrar, aparece un aviso con dos botones: **Aceptar** y **Autorizar salida**. El mensaje y lo que hace **Aceptar** dependen del caso:
+
+- **Sobra** producto (en cualquier intento), o **falta** producto y ya se había avisado antes en esta misma salida (segundo intento o más): el aviso dice *"Unidad con sobrantes/Faltantes. Regresar a zona de carga o revisar"*. **Aceptar** manda la unidad de regreso a la zona de carga: se **cancela** la salida sin tocar boletas, etiquetas ni el camión — quedan `activa`/`capturada`/`disponible` otra vez, como si el intento no hubiera pasado. La próxima vez que el camión se presente se trata como si fuera la primera vez.
+- Solo **falta** producto y es la primera vez que no cuadra en esta salida: el aviso dice *"Producto Faltante, Revisar Unidad"*. **Aceptar** no cancela nada, solo cierra el aviso y deja seguir leyendo (o volver a intentar Finalizar).
+- **Autorizar salida** (en los dos avisos): pide un texto con el motivo y el nombre de quien autoriza. La salida se cierra como `completada con diferencia`; boletas, etiquetas y camión cambian de estado igual que en una salida correcta, y **queda registrado** el motivo, la diferencia y la alarma.
+
+En todos los casos de diferencia la alarma (`faltante` o `excedente`, con el producto y la diferencia) queda guardada en Windows, incluso si la unidad regresa a la zona de carga.
 
 ## 4. Reglas de validación y alarmas
 
@@ -58,11 +63,11 @@ Una línea por producto esperado: *producto — esperados / leídos*, con marca 
 | Se leyó más de un producto que lo pedido, o un producto que no está en las boletas | `excedente` | Sí |
 | Etiqueta leída que no está registrada | `etiqueta no registrada` | Sí |
 | Etiqueta de un pallet ya `despachada` | `pallet ya despachado` | Sí |
-| El camión no tiene boletas activas | `camión sin boletas activas` | Sí (no se puede abrir) |
+| El camión no tiene boletas activas | `camión sin boletas activas` | Sí (no se puede abrir; aviso: "Esta unidad no tiene boletas asignadas.") |
 | El camión ya está `en ruta` | `camión no disponible` | Sí (no se puede abrir) |
 | Se leen etiquetas de otro camión durante el escaneo de pallets | — | No: se ignoran y solo se registran en el historial |
 
-- "Bloquea" significa que no se cierra como correcta; se resuelve **repitiendo la lectura** o con **autorización con motivo**.
+- "Bloquea" significa que no se cierra como correcta; se resuelve **aceptando** (la unidad regresa a la zona de carga, salida cancelada) o con **autorización de salida**.
 - Con varias boletas, la verificación es por **totales por producto**. Como la etiqueta se asocia al producto, no se sabe qué pallet corresponde a qué cliente; es una limitación aceptada en la demo.
 - Las alarmas de etiquetas (no registrada, ya despachada) se avisan en cuanto se leen; faltante y excedente se confirman al finalizar (el excedente también se resalta en vivo en el palomeo).
 - Una misma alarma no se repite por cada lectura: se registra una vez por salida y por etiqueta/producto.

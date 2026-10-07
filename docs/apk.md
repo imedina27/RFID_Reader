@@ -93,30 +93,50 @@ Esto ya está aplicado en `android_app/app/src/main/AndroidManifest.xml`.
 
 ## 6. Flujo de la APK
 
-> **Estado actual (2026-10-06):** existe una primera versión mínima en `android_app/` que solo hace "conectar → inventario continuo → mandar cada EPC por HTTP" (sin pantallas de menú, sin Salida a Ruta ni Captura de Tags todavía). El flujo completo de abajo es el objetivo de las Fases 6-7; se construye sobre esta base.
+> **Estado actual (2026-10-06):** Salida a Ruta y Captura de Tags (modo pallet) ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). Falta Captura de Tags modo Camión y el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
 
 ```
 Inicio (común):
 1. Pedir permisos (BLE + red)
 2. Escanear BLE → mostrar lectoras CS108 encontradas → conectar
+3. Menú principal: botones "Captura de Tags" y "Salida a Ruta", desactivados
+   hasta que la lectora queda conectada (MainActivity)
 
-Menú: "Salida a Ruta" · "Captura de Tags" · "Ajustes"
+Modo SALIDA A RUTA (SalidaRutaActivity → BoletasActivity → PalomeoActivity → AutorizarActivity):
+1. "Esperando parabrisas": mientras el gatillo esta presionado se escucha sin
+   cortar, guardando el RSSI mas alto visto por EPC (puede haber tags de
+   camiones vecinos cerca); al soltar, se toma el EPC ganador
+2. GET /api/dispatch/lookup/{truck_epc} → camión + boletas activas, o alarma
+   (`no_active_tickets`, `truck_not_available`, o 404 si el tag no es de
+   ningun camion registrado) -- se muestra en una ventana de advertencia
+3. Si hay boletas: se muestran sus datos (Camion, Placa, Boletas activas)
+   bajo el campo "Unidad Detectada...", con botones Aceptar/Cancelar.
+   Aceptar → pantalla de Boletas activas (lista con casillas, una tarjeta
+   por boleta con Folio/Cliente/lineas) → Confirmar → POST /api/dispatches
+4. Palomeo: mientras el GATILLO esta presionado se acumulan EPC unicos y se
+   mandan uno a uno → POST /api/dispatches/{id}/reads; lista de productos
+   esperado/leido con color (verde completo, amarillo falta, rojo sobra/no
+   solicitado); "Reiniciar lecturas" → POST /reset
+5. "Finalizar lectura" → POST /api/dispatches/{id}/finish
+   - Cuadra exacto → dialogo "Salida correcta", cierra hasta el menu
+   - No cuadra → dialogo con dos botones, "Aceptar" y "Autorizar salida"
+     (ver docs/funcional.md "Resultado en caso de diferencia" para cuando
+     Aceptar cancela la salida de una vez vs. cuando solo deja seguir
+     leyendo); "Autorizar salida" pide motivo + nombre →
+     POST /api/dispatches/{id}/authorize
 
-Modo SALIDA A RUTA (detalle en docs/funcional.md):
-3. Esperar lectura del parabrisas (un solo EPC, el de mayor RSSI)
-4. GET /api/dispatch/lookup/{truck_epc} → camión + boletas activas (o alarma)
-5. El usuario elige una o varias boletas → POST /api/dispatches → se obtiene lo esperado por producto
-6. Mientras el GATILLO está presionado: acumular EPC únicos y enviarlos por lote → POST /api/dispatches/{id}/reads
-7. Palomeo en pantalla por producto: esperados / leídos (faltan, completo, sobran)
-8. "Finalizar lectura" → POST /api/dispatches/{id}/finish
-9. Cuadra → "Salida correcta". No cuadra → alarma con diferencias y opciones:
-   Repetir lectura (/reset o seguir leyendo) · Autorizar con motivo (/authorize)
+Modo CAPTURA DE TAGS (CapturaTagsActivity) -- solo modo Pallet por ahora:
+1. Lee una etiqueta (se detiene el inventario en el primer tag nuevo)
+2. Aparece el EPC y, debajo, el combo de productos (GET /api/products)
+3. Aceptar → POST /api/tags/batch con un solo EPC; segun la respuesta:
+   - "created" → aviso "Guardado correcto" (3 s) y se limpia el EPC (el
+     producto se queda seleccionado para el siguiente pallet)
+   - cualquier otro resultado (ya capturada, de otro producto, es de
+     camion, ya despachada) → ventana de advertencia, Aceptar limpia todo
+4. Cancelar → limpia EPC y producto, foco en el campo
 
-Modo CAPTURA DE TAGS:
-3. Elegir tipo: Pallet (producto) o Camión
-4. Pallet: elegir producto una vez (modo lote) → leer con el gatillo → confirmar → POST /api/tags/batch
-5. Camión: elegir camión → leer parabrisas → POST /api/tags/truck
-6. Si se leen varias etiquetas nuevas a la vez, pedir confirmación antes de guardar
+Pendiente: Captura de Tags modo Camión (elegir camion → leer parabrisas →
+POST /api/tags/truck) y SimulatedSource (modo sin hardware).
 ```
 
 > Contrato completo de endpoints en `docs/api.md`.
@@ -164,3 +184,6 @@ La APK debe incluir un botón que simule la lectura de un EPC (por ejemplo, uno 
 - [x] **Bug real del SDK: `NullPointerException` en `CsLibrary4A.onRFIDEvent()`** (2026-10-06): la rama `default:` del `switch` interno no asigna `responseType`, y el llamador (`RfidInventoryManager.processTagData`) hace `switch` sobre ese enum nulo → `NullPointerException: ... HostCmdResponseTypes.ordinal() on a null object reference`. Se vendorizó el SDK completo como módulos locales (`android_app/csl-rfid-android-sdk/`, `cslibrary4a/`, `epctagcoder/`, licencia MIT, ya no se usa el paquete de JitPack) y se parchó `CsLibrary4A.java` en los dos lugares donde ocurre (CS108 y CS710) para asignar `HostCmdResponseTypes.NULL` en vez de dejarlo sin asignar. Confirmado en log: ya no truena, solo aparece `Received response type: NULL` (inofensivo).
 - [x] **Causa real de la lectura lenta con el gatillo** (no era el bug anterior, ni la potencia, ni la batería): después de muchas conexiones y desconexiones BLE seguidas al mismo lector en poco tiempo, el *stack* de Bluetooth del **teléfono** (no de la lectora) negocia un intervalo de conexión cada vez más lento con ese dispositivo — esto sobrevive a reinstalar la app, reiniciar la lectora o cambiar la potencia, porque vive en el sistema operativo del celular, no en la app ni en la lectora. **Mitigación confirmada:** apagar y prender el Bluetooth del teléfono (o activar/desactivar modo avión) antes de una sesión larga de pruebas restablece la velocidad normal de lectura.
 - [x] La potencia de la antena ajustada en Ajustes solo se aplicaba una vez, al conectar (`onReaderReady`); si se cambiaba después con la lectora ya conectada, no se re-aplicaba. Se agregó `aplicarPotencia()` también en `onResume()` cuando ya hay conexión activa.
+- [x] **Captura de Tags, modo Pallet, construida y probada con hardware real contra la API real** (2026-10-06): lectura de un EPC a la vez (se corta el inventario en el primer tag nuevo, a diferencia de Salida a Ruta), selector de producto, `POST /api/tags/batch`; ventana de advertencia si la etiqueta ya existe (capturada, de otro producto, de camión o ya despachada) y aviso de 3 s si se guarda — decisiones del usuario, simplifican el "modo lote" original de `docs/funcional.md` a un flujo de una etiqueta a la vez con el producto fijo entre lecturas.
+- [x] **Filtro de un solo EPC por mayor RSSI (parabrisas)**: en Salida a Ruta se acumula el RSSI más alto visto por EPC mientras el gatillo está presionado y, al soltar, se usa el EPC ganador — resuelve el pendiente de leer de más con etiquetas de camiones vecinos cerca.
+- [x] **Salida a Ruta construida completa y probada con hardware real contra la API real** (2026-10-06): las 4 pantallas (`SalidaRutaActivity`, `BoletasActivity`, `PalomeoActivity`, `AutorizarActivity`), incluida la lógica de diferencia (ver `docs/funcional.md`). Probado de punta a punta: salida correcta, salida cancelada por faltante (al segundo intento) y por sobrante (al primero), y camión sin boletas activas.
