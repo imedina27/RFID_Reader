@@ -6,7 +6,7 @@
 ## 1. Opciones de SDK oficiales (todas con licencia MIT)
 
 | Opción | Repositorio | Observaciones |
-|---|---|---|
+| --- | --- | --- |
 | **Wrapper SDK `csl-rfid-android-sdk` (recomendada)** | https://github.com/cslrfid/cs710s-android | Basada en *callbacks*. Soporta **CS710S y CS108**. Se instala por JitPack. `minSdk 26`, `compileSdk/targetSdk 36`, Java 17. |
 | SDK clásico `cslibrary4a` + app demo | https://github.com/cslrfid/CS108-Android-Java-App | App demo y SDK Java para CS108. Más antigua (requiere SDK platform 25, Android Studio 3.1.3+, JDK 1.8). Incluye módulos `app`, `cslibrary4a`, `epctagcoder` y carpeta `doc`. |
 | Protocolo propio (byte stream) | PDF "Bluetooth and USB Byte Stream API" (ver `lectora.md`) | Solo si se quisiera implementar BLE a mano. **No recomendado para la demo.** |
@@ -55,7 +55,7 @@ El demo `cs710aquickstart` ejemplifica: **escaneo BLE, conexión, inventario, b�
 ## 3. Apps de prueba ya publicadas (para validar la lectora antes de programar)
 
 | App | Enlace |
-|---|---|
+| --- | --- |
 | CS108 Java App (Android) | https://play.google.com/store/apps/details?id=com.csl.cs108ademoapp |
 | CS108 C# App (Android) | https://play.google.com/store/apps/details?id=csl.cs108fulldemo.demo |
 
@@ -95,7 +95,7 @@ Esto ya está aplicado en `android_app/app/src/main/AndroidManifest.xml`.
 
 > **Estado actual (2026-10-06):** Salida a Ruta y Captura de Tags (modo pallet) ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). Falta Captura de Tags modo Camión y el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
 
-```
+```text
 Inicio (común):
 1. Pedir permisos (BLE + red)
 2. Escanear BLE → mostrar lectoras CS108 encontradas → conectar
@@ -150,6 +150,7 @@ POST /api/tags/truck) y SimulatedSource (modo sin hardware).
 - **Red local en Android 16:** la restricción de acceso a la red local es **opcional** en Android 16 y obligatoria solo para apps con `targetSdk 37` o superior. Con `targetSdk 36` las llamadas HTTP a `192.168.x.x` funcionan sin permiso extra. Si se sube el target a 37, declarar `ACCESS_LOCAL_NETWORK` y solicitarlo en ejecución. (Fuente: [Local network permission, Android Developers](https://developer.android.com/privacy-and-security/local-network-permission).)
 
 ### Particularidades de Samsung One UI 8.5
+
 - El ahorro de batería puede cortar la conexión BLE en segundo plano: desactivar la optimización de batería para la APK (Ajustes → Aplicaciones → la APK → Batería → Sin restricciones).
 - Mantener la APK en primer plano y la pantalla encendida durante la demo.
 - **Bloqueador automático (confirmado 2026-10-06):** en Opciones de desarrollador, "Depuración por USB" puede aparecer apagado y en gris con la leyenda "Bloqueado por Bloqueador automático". Hay que ir a Ajustes → Seguridad y privacidad → Bloqueador automático y apagarlo (o su protección de USB) antes de que se pueda activar la depuración USB.

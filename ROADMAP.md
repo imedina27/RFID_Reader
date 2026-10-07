@@ -16,7 +16,7 @@ Tres piezas:
 2. **APK Android** (Samsung S24 Ultra) que opera la lectora en campo: *Salida a Ruta* y *Captura de Tags*.
 3. **App Windows (Python + PostgreSQL)** para catálogos, boletas de salida, monitoreo en vivo y alarmas.
 
-```
+```text
 Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──► Laptop (API Flask + PostgreSQL + app Windows)
                                        ▲                                   │
                                        └─────── resultados y alarmas ──────┘
@@ -35,7 +35,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 ## 2. Decisiones tomadas
 
 | Tema | Decisión |
-|---|---|
+| --- | --- |
 | Lectora | CSL CS108-2 — UHF EPC Gen2, Bluetooth LE, sin WiFi |
 | Etiquetas | Beontag CRUISER WINDSHIELD (UHF Gen2v2, Impinj M780). EPC único de 96 bits. Hay más de 1,000; la prueba usa **20–30** |
 | EPC validado | Lectura real con la app demo de CSL: `E28011C0A500007042D701FB` (24 hex). Etiquetas sin contraseña (00000000). **No se escribe en las etiquetas** |
@@ -69,6 +69,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - [ ] Instalar **Android Studio** (la IDE completa) para poder editar con autocompletado y depurar con el S24 Ultra conectado por USB — por ahora solo se instalaron JDK 17 y las herramientas de línea de comandos del SDK (suficiente para compilar).
 
 ### Ya resuelto
+
 - [x] Lectora, etiqueta, SDK, base de datos, celular y red definidos.
 - [x] Hito de hardware: lectora + S24 Ultra + etiqueta leyendo (captura de pantalla del usuario).
 - [x] Procedimientos de Salida a Ruta y Captura de Tags (`docs/funcional.md`).
@@ -89,6 +90,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 ## 4. Arquitectura
 
 ### 4.1 App Windows (Python)
+
 - **Proceso único:** la interfaz corre en el hilo principal y Flask en un hilo secundario, en `0.0.0.0:5000`.
 - **Persistencia:** PostgreSQL local; la cadena de conexión sale de `.env` (no se versiona). Solo la app Windows accede a la base de datos.
 - **Esquema:** `schema.sql` (ver `docs/modelo_datos.md`) se ejecuta al arrancar.
@@ -96,6 +98,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - **Transacciones:** el cierre de una salida (boletas, etiquetas y camión) se hace en una sola transacción.
 
 ### 4.2 APK Android (Kotlin)
+
 - Interfaz `RfidSource` con `Cs108Source` (SDK real) y `SimulatedSource` (plan B).
 - **Gatillo físico:** mientras está presionado, la APK acumula EPC únicos y los envía a la API por lotes; el palomeo se actualiza con la respuesta.
 - **Parabrisas:** lectura de un solo EPC (el de mayor RSSI).
@@ -104,7 +107,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 
 ### 4.3 Estructura de repositorio sugerida
 
-```
+```text
 RFID_Reader/
 ├── ROADMAP.md
 ├── Pipfile / Pipfile.lock
@@ -123,11 +126,13 @@ RFID_Reader/
 ## 5. Fases y tareas
 
 ### Fase 0 — Hardware ✅ (casi completa)
+
 - [x] Lectora CS108-2 identificada; etiqueta Beontag definida.
 - [x] Lectora, S24 Ultra y etiqueta leyendo con la app demo de CSL.
 - [ ] Leer la etiqueta de la lectora: banda, antena y número de serie.
 
 ### Fase 1 — Pruebas físicas y estudio del SDK
+
 - [ ] **Prueba en camión real cargado:** etiquetas en pallets de madera con y sin emplaye, en la cara exterior, y medir qué porcentaje de pallets se lee desde las puertas y los costados. Probar potencias distintas.
 - [ ] Probar **etiquetas junto a refrescos en PET** (líquido) y en pallets del fondo del camión; probar con el gatillo en varias pasadas.
 - [ ] Probar si se leen pallets o camiones vecinos y a qué potencia deja de ocurrir.
@@ -138,16 +143,19 @@ RFID_Reader/
 **Entregable:** resultados de las pruebas físicas (sigue pendiente); `docs/apk.md` ya sin pendientes de código.
 
 ### Fase 2 — Diseño de pantallas
+
 - [ ] Definir con el usuario los diseños (bocetos) de las pantallas de la APK y de Windows listadas en `docs/funcional.md`, sección 6.
 - [ ] Definir camiones (número económico y placa) y boletas de ejemplo para la demo.
 
 ### Fase 3 — Entorno de desarrollo ✅
+
 - [x] pipenv: `flask`, `psycopg[binary]`, `python-dotenv`, `pyqt6` (confirmado con Python 3.14) y `pytest` (dev).
 - [x] PostgreSQL: base `RFID_Reader` creada (PostgreSQL 18.6, puerto 5432, rol existente `qua_admin`).
 - [x] `windows_app/.env` (no versionado) y `windows_app/.env.example`; `.gitignore` en el repo.
 - [x] JDK 17 + `adb` funcionando con el S24 Ultra conectado por USB (depuración USB habilitada; hubo que desactivar el "Bloqueador automático" de Samsung, que la bloqueaba). Falta solo Android Studio como IDE (se puede seguir compilando e instalando por línea de comandos sin ella).
 
 ### Fase 4 — App Windows: backend ✅ (casi completa)
+
 - [x] `schema.sql` y `db.py` según `docs/modelo_datos.md`.
 - [x] API según `docs/api.md`: catálogos, etiquetas y captura por lote, boletas, **salida a ruta**, alarmas.
 - [x] Reglas de `docs/funcional.md` sección 4 (alarmas, bloqueos, cierre transaccional) — verificadas con pruebas de extremo a extremo.
@@ -155,11 +163,13 @@ RFID_Reader/
 - [x] `seed.py` con los 5 productos de la demo (camiones y boletas de ejemplo reales quedan para la Fase 2).
 - [x] Probado con el cliente de pruebas de Flask contra la base real (equivalente a curl/Postman): salida correcta, con diferencia y autorización.
 - [ ] Abrir el puerto 5000 en el firewall (requiere PowerShell como administrador):
+
   ```powershell
   netsh advfirewall firewall add rule name="RFID API" dir=in action=allow protocol=TCP localport=5000
   ```
 
 ### Fase 5 — App Windows: interfaz (en progreso)
+
 - [x] Armazón de la ventana (PyQt6): encabezado, logo e imagen corporativa reutilizados de `Cam_Lens_V2` (`windows_app/ui/`), navegación a la **derecha** con las 7 pantallas y tema oscuro/claro (corregido: los botones no seleccionados ya se ven bien en modo claro).
 - [x] Proceso único funcionando: Flask corre en un hilo secundario y la ventana en el hilo principal (`windows_app/main.py`).
 - [x] **Tablero**: estado de PostgreSQL, alarmas abiertas, camiones en ruta y salidas del día, consultando PostgreSQL directamente (no vía HTTP) con refresco cada 2 s.
@@ -169,6 +179,7 @@ RFID_Reader/
 - [ ] Aviso claro si PostgreSQL o la API no están disponibles (el Tablero ya marca "No disponible" en rojo; falta un aviso más visible en el resto de pantallas).
 
 ### Fase 6 — APK: lectura (versión mínima en progreso)
+
 - [x] Proyecto Android (`android_app/`, Kotlin) con `csl-rfid-android-sdk` v1.1.0: conectar a la CS108-2 (escaneo BLE + conexión) y leer por inventario continuo, mandando cada EPC por HTTP a un receptor de pruebas (`tools/tag_receiver.py`, fuera de la app principal).
 - [x] **Compila:** `./gradlew assembleDebug` genera `app-debug.apk` (~7 MB) sin errores. En el camino se corrigieron dos cosas que solo se descubren compilando de verdad: AGP 9+ ya no usa el plugin `org.jetbrains.kotlin.android` (Kotlin viene integrado) y OkHttp se bajó a 4.12.0 (la rama 5.x exige `compileSdk` 37+).
 - [x] **Instalado y probado en el S24 Ultra real contra la CS108-2 real** (2026-10-06): se conectó por BLE a "CS108Reader25EED9", leyó el tag validado `E28011C0A500007042D701FB` repetidamente y lo mandó por Wi-Fi al receptor de prueba en la laptop — confirmado viendo la lectura llegar a `tools/tag_receiver.py`.
@@ -187,6 +198,7 @@ RFID_Reader/
 - [ ] `SimulatedSource` (modo sin hardware) — el interruptor en Ajustes ya existe pero todavía no simula lecturas.
 
 ### Fase 7 — APK: flujos
+
 - [x] **Captura de Tags, modo Pallet** (2026-10-06): un EPC a la vez (se corta el inventario en el primer tag nuevo), selector de producto (que se queda fijo entre lecturas), `POST /api/tags/batch` real, ventana de advertencia si la etiqueta ya existe (capturada, de otro producto, de camión o despachada) y aviso de 3 s al guardar. Simplifica el "modo lote" original de `docs/funcional.md` a pedido del usuario — la etiqueta de un solo uso y la asociación a un producto no cambian.
 - [ ] **Captura de Tags, modo Camión** (elegir camión → leer parabrisas → `POST /api/tags/truck`) — no empezado.
 - [x] **Salida a Ruta completa** (2026-10-06), probada de punta a punta con hardware real contra la API real: `SalidaRutaActivity` (parabrisas → camión encontrado/advertencia) → `BoletasActivity` (selección múltiple con casillas, `POST /dispatches`) → `PalomeoActivity` (lectura continua, palomeo con color, Reiniciar/Finalizar) → `AutorizarActivity` (motivo + nombre). Ver `docs/funcional.md` "Resultado en caso de diferencia" para la lógica de cuándo "Aceptar" cancela la salida (unidad regresa a zona de carga) o solo deja seguir leyendo.
@@ -195,12 +207,14 @@ RFID_Reader/
 - [x] Generar APK: `./gradlew assembleDebug` — se usa en cada cambio.
 
 ### Fase 8 — Pruebas de extremo a extremo
+
 - [ ] Hotspot real de la demo.
 - [ ] Capturar 20–30 etiquetas; crear boletas; asignar camión; salida correcta.
 - [ ] Casos de alarma: faltante, excedente, etiqueta no registrada, pallet ya despachado, camión sin boletas, camión ya en ruta, dos boletas en un camión, autorización con motivo, repetir lectura.
 - [ ] Fallas de infraestructura: servidor apagado, WiFi caído, Bluetooth desconectado.
 
 ### Fase 9 — Preparación de la presentación
+
 - [ ] Guion de la demo y datos creíbles cargados.
 - [ ] Plan B: modo simulado y video del flujo funcionando.
 - [ ] Baterías cargadas, cable USB-C, etiquetas de repuesto.
@@ -213,9 +227,11 @@ RFID_Reader/
 1. **Hotspot de la laptop (recomendado):** IP habitual `192.168.137.1`. Windows puede pedir una conexión de origen; probar antes si se activa sin internet. Alternativa: hotspot del S24 Ultra (la IP de la laptop cambia; se muestra en el Tablero).
 2. El celular usa **dos radios a la vez**: Bluetooth (lectora) y WiFi (laptop). Probarlo.
 3. **PostgreSQL no se expone a la red**; solo se abre el puerto 5000:
+
    ```powershell
    netsh advfirewall firewall add rule name="RFID API" dir=in action=allow protocol=TCP localport=5000
    ```
+
 4. **HTTP sin cifrar:** permitirlo con `network_security_config.xml` o `usesCleartextTraffic="true"`.
 5. **Android 16:** permisos `BLUETOOTH_SCAN` y `BLUETOOTH_CONNECT`; con `targetSdk 36` no hace falta el permiso de red local (obligatorio solo desde `targetSdk 37`).
 6. **One UI:** batería de la APK en "Sin restricciones", app en primer plano y pantalla encendida.
@@ -228,7 +244,7 @@ RFID_Reader/
 ## 7. Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
-|---|---|
+| --- | --- |
 | **Refrescos en PET (líquido) atenúan la señal**; pallets del fondo o del centro del camión quedan tapados → falsos "faltantes" | Etiqueta en la cara exterior y alta del pallet; varias pasadas con el gatillo acumulando; prueba en camión real en la Fase 1 |
 | Se leen pallets de camiones vecinos o del andén → falsos "excedentes" | Bajar la potencia; probar a la distancia real; reiniciar lecturas; autorización con motivo |
 | La etiqueta solo declara vidrio como superficie; madera y emplaye pueden cambiar el rendimiento | Prueba de ubicación en pallet real; alternativas: tarjeta o espaciador |

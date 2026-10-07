@@ -196,6 +196,7 @@ GROUP BY product_id;
 La salida es **correcta** si, para todos los productos, `leído = esperado`, y no hay lecturas con resultado `unknown` ni `already_dispatched`. Cualquier otro caso genera alarmas.
 
 ## Cierre de una salida correcta (una sola transacción)
+
 1. `dispatches.status = 'completed'` y `finished_at = now()`.
 2. Las `exit_tickets` de la salida pasan a `dispatched` con `dispatched_at`.
 3. Las etiquetas de `dispatch_reads` con `result = 'counted'` pasan a `status = 'dispatched'`.

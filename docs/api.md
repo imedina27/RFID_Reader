@@ -6,13 +6,13 @@ Todos los EPC se normalizan (mayúsculas, sin espacios) en la APK y en la API.
 ## Salud
 
 | Método | Ruta | Descripción |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/health` | Estado de la API y de PostgreSQL |
 
 ## Catálogos (Windows y APK)
 
 | Método | Ruta | Descripción |
-|---|---|---|
+| --- | --- | --- |
 | GET / POST | `/products` | Listar / crear productos |
 | PUT | `/products/{id}` | Editar producto |
 | GET / POST | `/trucks` | Listar / crear camiones |
@@ -22,7 +22,7 @@ Todos los EPC se normalizan (mayúsculas, sin espacios) en la APK y en la API.
 ## Etiquetas y captura
 
 | Método | Ruta | Descripción |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/tags/{epc}` | Consultar una etiqueta: tipo, producto o camión, estado |
 | GET | `/tags?kind=&product_id=&status=` | Listar con filtros |
 | POST | `/tags/batch` | **Captura por lote de pallets** `{ "product_id": 3, "epcs": ["..."] }` |
@@ -66,7 +66,7 @@ Respuesta de `POST /tags/batch`: un resultado por EPC (los creados incluyen su f
 ## Boletas de salida (principalmente Windows)
 
 | Método | Ruta | Descripción |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/exit-tickets?status=&truck_id=` | Listar boletas con sus líneas |
 | POST | `/exit-tickets` | Crear `{ "folio": "...", "customer": "...", "truck_id": 2, "lines": [{ "product_id": 3, "pallets": 4 }] }` |
 | PUT | `/exit-tickets/{id}` | Editar (solo si está `active`) |
@@ -76,7 +76,7 @@ Respuesta de `POST /tags/batch`: un resultado por EPC (los creados incluyen su f
 ## Salida a ruta (APK)
 
 | Método | Ruta | Descripción |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/dispatch/lookup/{truck_epc}` | Dado el EPC del parabrisas, devuelve el camión, su estado y sus **boletas activas** con líneas. Si hay un problema, devuelve la alarma (`no_active_tickets`, `truck_not_available`) |
 | POST | `/dispatches` | Abrir salida `{ "truck_epc": "...", "ticket_ids": [11, 12] }` → devuelve `dispatch_id` y lo **esperado** por producto |
 | POST | `/dispatches/{id}/reads` | Enviar un lote de EPC leídos `{ "epcs": ["...", "..."] }` → devuelve el **palomeo** actualizado |
@@ -125,7 +125,7 @@ Respuesta de `POST /dispatches/{id}/finish`:
 ## Alarmas (Windows)
 
 | Método | Ruta | Descripción |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/alarms?status=open` | Listar alarmas (abiertas por defecto) |
 | POST | `/alarms/{id}/ack` | Marcar como atendida `{ "acknowledged_by": "..." }` |
 

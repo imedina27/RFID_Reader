@@ -17,7 +17,7 @@ Dos aplicaciones:
 ## 2. Conceptos
 
 | Concepto | Descripción |
-|---|---|
+| --- | --- |
 | **Producto** | Un tipo de producto (p. ej. "Refresco Cola 600 ml PET"). Catálogo que se mantiene en Windows. |
 | **Etiqueta de pallet** | Etiqueta Beontag pegada en un pallet. Se asocia a **un producto**. Es de **un solo uso** (una etiqueta nueva por cada pallet producido). Datos que guarda el sistema: **Folio** (consecutivo único generado por el sistema al capturar, p. ej. `PLT-000123`), **Producto** y **Fecha de salida de producción** (fecha y hora de la **primera captura**, es decir, cuando el pallet salió de la línea). Esa fecha no cambia aunque la etiqueta se lea o se corrija después. |
 | **Etiqueta de camión** | Etiqueta Beontag en el parabrisas. Se asocia a **un camión**. |
@@ -27,13 +27,14 @@ Dos aplicaciones:
 | **Alarma** | Aviso de una diferencia o irregularidad, visible en la APK y en Windows. |
 
 ### Estado de cada etiqueta de pallet
+
 - `capturada`: asociada a un producto y disponible en almacén.
 - `despachada`: ya salió en una salida a ruta correcta. **No puede volver a contarse** en otra salida.
 
 ## 3. Procedimiento A — Salida a ruta (APK)
 
 | Paso | Qué hace el usuario | Qué hace el sistema |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Se acerca al frente del camión y elige **"Salida a Ruta"** en el menú | Pasa a la pantalla "Esperando parabrisas" |
 | 2 | Acerca la lectora al parabrisas (gatillo) | Lee **una sola etiqueta** (la de mayor señal) y consulta el camión |
 | 3 | — | Muestra las **boletas activas** del camión. Si no tiene, alarma `camión sin boletas activas`. Si el camión ya está `en ruta`, alarma `camión no disponible` |
@@ -44,9 +45,11 @@ Dos aplicaciones:
 | 7b | Si **no cuadra** | Muestra un aviso en la APK con dos opciones: **Aceptar** o **Autorizar salida**; registra la alarma (`faltante`/`excedente`) en Windows |
 
 ### Pantalla de palomeo (paso 5)
+
 Una línea por producto esperado: *producto — esperados / leídos*, con marca de color: faltan (amarillo), completo (verde), sobran (rojo). Productos leídos que no están en las boletas se muestran como "no solicitado" en rojo. Contador total y botón de reinicio de lecturas. Al tocar un producto se ven los **folios** de los pallets leídos y su fecha de salida de producción.
 
 ### Resultado en caso de diferencia (decisión 2026-10-06)
+
 Al presionar **Finalizar lectura** sin cuadrar, aparece un aviso con dos botones: **Aceptar** y **Autorizar salida**. El mensaje y lo que hace **Aceptar** dependen del caso:
 
 - **Sobra** producto (en cualquier intento), o **falta** producto y ya se había avisado antes en esta misma salida (segundo intento o más): el aviso dice *"Unidad con sobrantes/Faltantes. Regresar a zona de carga o revisar"*. **Aceptar** manda la unidad de regreso a la zona de carga: se **cancela** la salida sin tocar boletas, etiquetas ni el camión — quedan `activa`/`capturada`/`disponible` otra vez, como si el intento no hubiera pasado. La próxima vez que el camión se presente se trata como si fuera la primera vez.
@@ -58,7 +61,7 @@ En todos los casos de diferencia la alarma (`faltante` o `excedente`, con el pro
 ## 4. Reglas de validación y alarmas
 
 | Situación | Tipo de alarma | ¿Bloquea el cierre? |
-|---|---|---|
+| --- | --- | --- |
 | Se leyó menos de un producto que lo pedido | `faltante` | Sí |
 | Se leyó más de un producto que lo pedido, o un producto que no está en las boletas | `excedente` | Sí |
 | Etiqueta leída que no está registrada | `etiqueta no registrada` | Sí |
@@ -75,7 +78,7 @@ En todos los casos de diferencia la alarma (`faltante` o `excedente`, con el pro
 ## 5. Procedimiento B — Captura de tags (APK)
 
 | Paso | Qué hace el usuario | Qué hace el sistema |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Elige **"Captura de Tags"** | Pregunta el tipo: **Pallet (producto)** o **Camión** |
 | 2 (pallet) | Elige el **producto** una sola vez (se queda seleccionado: **modo lote**) | Queda listo para leer |
 | 3 | Lee la etiqueta (gatillo) | Muestra las etiquetas nuevas leídas. Las ya capturadas se indican como "ya capturada" y no se duplican |
@@ -84,21 +87,25 @@ En todos los casos de diferencia la alarma (`faltante` o `excedente`, con el pro
 | 2 (camión) | Elige el camión en la lista | Lee la etiqueta del parabrisas y la asocia a ese camión |
 
 ### Salvaguardas
+
 - Si en una sola lectura aparecen **varias etiquetas nuevas** (por ejemplo, 5 a la vez), se pide confirmación antes de asignarlas todas al producto, para evitar capturar etiquetas ajenas por error.
 - Una etiqueta de **camión** solo puede asociarse a un camión, y cada camión tiene **una** etiqueta de parabrisas.
 - Una etiqueta ya `despachada` no puede recapturarse; muestra un aviso.
 
 ### Pallets de la línea de producción
+
 Es **la misma captura de tags**. Cada pallet nuevo recibe su etiqueta, se lee en modo lote con el producto de la corrida de producción y queda `capturada`.
 
 ### Captura desde Windows
+
 La app Windows muestra lo capturado desde la APK casi en tiempo real y permite **corregir** (cambiar el producto, eliminar) y **capturar a mano** pegando un EPC.
 
 ## 6. Pantallas (lista; el diseño se define después)
 
 ### App Windows
+
 | Pantalla | Para qué |
-|---|---|
+| --- | --- |
 | **Tablero** | Estado de PostgreSQL y de la API, IP/puerto, alarmas abiertas, camiones en ruta, salidas del día |
 | **Productos** | Catálogo (clave, nombre, presentación) |
 | **Camiones** | Alta, edición, etiqueta del parabrisas, estado y botón **"Marcar disponible"** (regreso de ruta) |
@@ -108,8 +115,9 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 | **Alarmas** | Lista (abiertas y atendidas) con aviso visual y sonoro; marcar como atendida |
 
 ### APK Android
+
 | Pantalla | Para qué |
-|---|---|
+| --- | --- |
 | **Menú principal** | "Salida a Ruta", "Captura de Tags", "Ajustes" y estado de la lectora |
 | **Conexión con la lectora** | Buscar y conectar la CS108 por Bluetooth |
 | **Salida a Ruta** | Esperando parabrisas → selección de boletas → escaneo y palomeo → resultado (correcta / alarma con Repetir o Autorizar) |
@@ -119,7 +127,7 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 ## 7. Datos mínimos de la demo
 
 | Elemento | Propuesta |
-|---|---|
+| --- | --- |
 | Productos | 5, confirmados: **Coca Cola 2 L**, **Coca Cola 600 ml**, **Sprite 600 ml**, **Agua Cristal 600 ml**, **Bevi 355 ml** |
 | Camiones | 2 o 3 reales, con etiqueta en el parabrisas |
 | Pallets | Hasta 20–25 etiquetas capturadas en total (máximo de la prueba: 30) |
@@ -128,6 +136,7 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 ## 8. Supuestos y pendientes
 
 ### Supuestos (confirmar o corregir)
+
 - Cada pallet lleva una etiqueta nueva de un solo uso.
 - Un pallet contiene un solo producto.
 - Un solo operador y una sola lectora a la vez.
@@ -135,10 +144,12 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 - La autorización con motivo se hace en la propia APK (texto con motivo y nombre); no se exige contraseña de supervisor en la demo.
 
 ### Confirmado
+
 - Productos de la demo (sección 7).
 - Pallet: folio generado por el sistema, producto y fecha de salida de producción (= primera captura).
 - Boleta: folio, cliente y líneas (producto + pallets); el sistema añade fecha de creación y camión asignado. Sin campos extra.
 
 ### Pendientes
+
 - [ ] Diseño de pantallas de APK y Windows.
 - [ ] Prueba de lectura en un camión real cargado (porcentaje de pallets leídos) y definición de dónde se pega la etiqueta en el pallet.

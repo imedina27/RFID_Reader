@@ -12,14 +12,14 @@ El CS108 es un lector RFID **UHF** portátil tipo "sled" (se acopla a un celular
 
 Consecuencia para el proyecto: el WiFi lo ponen el **celular** (que habla con la app Windows) y la **PC**. La lectora solo habla con el celular por Bluetooth.
 
-```
+```text
 TAG ~~RF UHF~~ CS108 ──BLE──► Celular (APK) ──WiFi/HTTP──► PC (app Windows)
 ```
 
 ## 3. Especificaciones
 
 | Característica | Valor |
-|---|---|
+| --- | --- |
 | Fabricante / modelo | Convergence Systems Limited (CSL) — CS108 (variante "-2" ⚠️) |
 | Tecnología RFID | UHF, EPC Class 1 Gen 2 / ISO 18000-6C, modo Dense Reader disponible |
 | Chip lector | Impinj Indy R2000 |
@@ -33,9 +33,11 @@ TAG ~~RF UHF~~ CS108 ──BLE──► Celular (APK) ──WiFi/HTTP──► P
 | Protección | IP54 (según distribuidor, versión con antena circular) |
 
 ### Sobre el sufijo "-2" ⚠️
+
 Los distribuidores de EE. UU. venden referencias como `CS108-C-2` y `CS108-C2D-2` con banda **902–928 MHz (FCC)**, por lo que el "-2" probablemente indique la **región de frecuencia**. El fabricante define variantes regionales desde 865–868 MHz (Europa/India) hasta 922–928 MHz (Taiwán). **Confirmar en la etiqueta** que el equipo corresponde a la banda de México (902–928 MHz). Esto no impide el desarrollo, pero conviene dejarlo documentado.
 
 ### Datos a anotar de la etiqueta del equipo
+
 - [ ] Modelo completo (¿lleva letra de antena V / H / C? ¿lleva "2D"?)
 - [ ] Banda de frecuencia / región
 - [ ] Número de serie
@@ -66,7 +68,7 @@ Como el equipo es UHF EPC Gen2, necesitas **TAGs UHF Gen2** (etiquetas adhesivas
 ## 7. Documentación oficial
 
 | Recurso | Enlace |
-|---|---|
+| --- | --- |
 | Página del producto | https://www.convergence.com.hk/cs108/ |
 | Descargas CS108 | https://www.convergence.com.hk/downloads/cs108/ |
 | Hoja de datos (PDF) | https://www.convergence.com.hk/wp-content/uploads/2021/10/CS108-Spec-Sheet-V4-1_30-09-2021.pdf |

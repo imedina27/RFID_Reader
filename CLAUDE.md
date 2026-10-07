@@ -31,7 +31,7 @@ Antes de programar, lee en este orden:
 ## 3. Stack y entorno
 
 | Tema | Decisión |
-|---|---|
+| --- | --- |
 | Lenguaje Windows | Python **3.14** (puede bajar a 3.13 si faltan paquetes); entorno con **pipenv** (`Pipfile` ya existe) |
 | API | Flask, `host="0.0.0.0"`, puerto **5000**, corre en un hilo secundario dentro de la app de escritorio |
 | Interfaz Windows | PyQt6 o PySide6 (recomendado sobre Tkinter; confirmar compatibilidad con Python 3.14 en la Fase 3) |
@@ -82,16 +82,19 @@ RFID_Reader/
 **En cada sesión de trabajo que cambie algo del proyecto (código, decisiones, alcance, esquema, API, pendientes), Claude debe actualizar SIEMPRE estos tres archivos antes de terminar:**
 
 ### 6.1 `ROADMAP.md`
+
 - Marcar con `[x]` las tareas completadas y agregar las nuevas.
 - Mover los pendientes resueltos a "Ya resuelto" y añadir los nuevos pendientes.
 - Actualizar la línea **Estado** (versión y resumen) del encabezado.
 - Actualizar riesgos, decisiones y "Próximos pasos inmediatos" si cambiaron.
 
 ### 6.2 `README.md`
+
 - Mantener al día el **estado del proyecto**, cómo instalar/ejecutar, estructura de carpetas y el índice de documentación.
 - Si cambia un comando, una dependencia, un puerto o la forma de arrancar, reflejarlo aquí.
 
 ### 6.3 `CHANGELOG.md`
+
 - Formato **Keep a Changelog** en español, con versiones tipo `MAJOR.MINOR.PATCH` (mientras sea demo: `0.x.y`).
 - Cada cambio va primero en la sección `## [Sin publicar]` y, al cerrar una sesión o hito, se pasa a una versión nueva con fecha `AAAA-MM-DD`.
 - Categorías: **Añadido**, **Cambiado**, **Corregido**, **Eliminado**, **Documentación**.
@@ -100,6 +103,7 @@ RFID_Reader/
 - La versión del `CHANGELOG.md` y la del encabezado del `ROADMAP.md` deben coincidir.
 
 ### 6.4 Otras reglas de documentación
+
 - Si cambia el modelo de datos, actualizar también `docs/modelo_datos.md` (y `schema.sql`); si cambia un endpoint, `docs/api.md`; si cambia un procedimiento o regla, `docs/funcional.md`.
 - Al terminar, **resumir al usuario** qué se cambió y qué archivos de documentación se actualizaron.
 
