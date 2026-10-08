@@ -15,4 +15,7 @@
     <color name="color_on_accent">#1E1E28</color>
     <color name="color_reading">#8B5CF6</color>
     <color name="color_on_reading">#FFFFFF</color>
+
+    <!-- Fondo del ícono de la app (adaptive icon): fijo, no cambia con el tema. -->
+    <color name="ic_launcher_background">#FAF8F6</color>
 </resources>
