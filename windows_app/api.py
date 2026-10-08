@@ -3,6 +3,7 @@ from flask import Flask, g, jsonify, request
 from psycopg.types.json import Json
 
 import db
+import live_state
 from errors import ApiError, bad_request, conflict, not_found
 from verification import build_alarms, is_exact_match, product_diffs
 
@@ -319,6 +320,36 @@ def create_app() -> Flask:
         conn.execute("DELETE FROM tags WHERE epc = %s", (epc,))
         return "", 204
 
+    @app.post("/api/tags/reset-delivered")
+    def reset_delivered_tags():
+        """'Limpiar Estado' (Windows, pantalla Pallets): para reutilizar los
+        mismos pallets físicos entre ensayos de la demo. Regresa a
+        'captured' solo los pallets cuya salida más reciente ya fue
+        entregada (completed/completed_with_difference + delivered_at). Los
+        que siguen en ruta o no han salido no se tocan; los de una salida
+        cancelada nunca llegaron a 'dispatched', así que no aplica."""
+        conn = get_conn()
+        rows = conn.execute(
+            """
+            WITH ultimo_dispatch AS (
+                SELECT DISTINCT ON (dr.epc) dr.epc, d.status, d.delivered_at
+                FROM dispatch_reads dr
+                JOIN dispatches d ON d.id = dr.dispatch_id
+                WHERE dr.result = 'counted'
+                ORDER BY dr.epc, dr.first_read_at DESC
+            )
+            UPDATE tags t
+            SET status = 'captured'
+            FROM ultimo_dispatch u
+            WHERE t.epc = u.epc
+              AND t.status = 'dispatched'
+              AND u.status IN ('completed', 'completed_with_difference')
+              AND u.delivered_at IS NOT NULL
+            RETURNING t.epc
+            """
+        ).fetchall()
+        return jsonify({"reset_count": len(rows), "epcs": [row["epc"] for row in rows]})
+
     # ---------------------------------------------------- boletas salida --
     @app.get("/api/exit-tickets")
     def list_exit_tickets():
@@ -354,23 +385,19 @@ def create_app() -> Flask:
     @app.post("/api/exit-tickets")
     def create_exit_ticket():
         body = request.get_json(force=True) or {}
-        folio = body.get("folio")
         customer = body.get("customer")
         lines = body.get("lines") or []
-        if not folio or not customer or not lines:
-            raise bad_request("Se requieren 'folio', 'customer' y al menos una línea.")
+        if not customer or not lines:
+            raise bad_request("Se requieren 'customer' y al menos una línea.")
         conn = get_conn()
         ticket = conn.execute(
             """
             INSERT INTO exit_tickets (folio, customer, truck_id)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (folio) DO NOTHING
+            VALUES ('BOL-' || lpad(nextval('exit_ticket_folio_seq')::text, 6, '0'), %s, %s)
             RETURNING id, folio, customer, truck_id, status, created_at
             """,
-            (folio, customer, body.get("truck_id")),
+            (customer, body.get("truck_id")),
         ).fetchone()
-        if ticket is None:
-            raise conflict(f"Ya existe una boleta con folio '{folio}'.", "exit_ticket_exists")
         for line in lines:
             conn.execute(
                 "INSERT INTO exit_ticket_lines (ticket_id, product_id, pallets) VALUES (%s, %s, %s)",
@@ -448,6 +475,7 @@ def create_app() -> Flask:
         truck = conn.execute(
             "SELECT id, unit_number, plate, status FROM trucks WHERE id = %s", (tag["truck_id"],)
         ).fetchone()
+        live_state.marcar_escaneo(truck)  # panel en vivo del Tablero
         if truck["status"] == "en_route":
             return jsonify({
                 "truck": truck, "alarm": "truck_not_available",
@@ -636,21 +664,54 @@ def create_app() -> Flask:
         )
         return jsonify({"result": "ok", "dispatch_status": "cancelled"})
 
+    @app.post("/api/dispatches/<int:dispatch_id>/deliver")
+    def deliver_dispatch(dispatch_id: int):
+        """'Unidad en planta' (Windows, pantalla Salidas a ruta): no cambia
+        'status' (eso ya distingue completed/completed_with_difference, el
+        "tipo de salida"), solo marca 'delivered_at' y libera el camión."""
+        conn = get_conn()
+        dispatch = conn.execute(
+            """
+            UPDATE dispatches SET delivered_at = now()
+            WHERE id = %s AND status IN ('completed', 'completed_with_difference')
+                  AND delivered_at IS NULL
+            RETURNING id, truck_id, status, delivered_at
+            """,
+            (dispatch_id,),
+        ).fetchone()
+        if dispatch is None:
+            raise conflict(
+                f"La salida {dispatch_id} no existe, no ha salido o ya fue entregada.",
+                "dispatch_not_deliverable",
+            )
+        conn.execute(
+            "UPDATE trucks SET status = 'available', status_changed_at = now() WHERE id = %s",
+            (dispatch["truck_id"],),
+        )
+        return jsonify({
+            "id": dispatch["id"], "status": dispatch["status"],
+            "delivered_at": dispatch["delivered_at"].isoformat(),
+        })
+
     # ------------------------------------------------------------ alarmas -
     @app.get("/api/alarms")
     def list_alarms():
         status = request.args.get("status", "open")
-        conn = get_conn()
-        if status == "open":
-            rows = conn.execute(
-                "SELECT * FROM alarms WHERE acknowledged_at IS NULL ORDER BY created_at DESC"
-            ).fetchall()
-        elif status == "ack":
-            rows = conn.execute(
-                "SELECT * FROM alarms WHERE acknowledged_at IS NOT NULL ORDER BY created_at DESC"
-            ).fetchall()
-        else:
-            rows = conn.execute("SELECT * FROM alarms ORDER BY created_at DESC").fetchall()
+        clause = {
+            "open": "WHERE a.acknowledged_at IS NULL",
+            "ack": "WHERE a.acknowledged_at IS NOT NULL",
+        }.get(status, "")
+        rows = get_conn().execute(
+            f"""
+            SELECT a.id, a.dispatch_id, a.type, a.message, a.details, a.created_at,
+                   a.acknowledged_at, a.acknowledged_by, t.unit_number AS truck_unit_number
+            FROM alarms a
+            LEFT JOIN dispatches d ON d.id = a.dispatch_id
+            LEFT JOIN trucks t ON t.id = d.truck_id
+            {clause}
+            ORDER BY a.created_at DESC
+            """
+        ).fetchall()
         return jsonify(rows)
 
     @app.post("/api/alarms/<int:alarm_id>/ack")

@@ -32,16 +32,17 @@ TAG ~~RF UHF~~ CS108 ──BLE──► Celular (APK) ──WiFi/HTTP──► P
 | Sistemas compatibles | Android, iOS, Windows y Linux |
 | Protección | IP54 (según distribuidor, versión con antena circular) |
 
-### Sobre el sufijo "-2" ⚠️
+### Sobre el sufijo "-2" ✅ confirmado (2026-10-07)
 
-Los distribuidores de EE. UU. venden referencias como `CS108-C-2` y `CS108-C2D-2` con banda **902–928 MHz (FCC)**, por lo que el "-2" probablemente indique la **región de frecuencia**. El fabricante define variantes regionales desde 865–868 MHz (Europa/India) hasta 922–928 MHz (Taiwán). **Confirmar en la etiqueta** que el equipo corresponde a la banda de México (902–928 MHz). Esto no impide el desarrollo, pero conviene dejarlo documentado.
+Confirmado con la etiqueta física del equipo: el "-2" indica la **región de frecuencia FCC/IC** (EE. UU./Canadá, **902–928 MHz**), que es la misma banda que usa México. La etiqueta trae **FCC ID** (`UB4CS108C1GEN2`) e **IC ID** (`8073A-CS1082CA`), certificaciones que solo aplican a equipos de esa región de frecuencia — no hace falta revisar más, el equipo ya es el correcto para la demo en México.
 
-### Datos a anotar de la etiqueta del equipo
+### Datos de la etiqueta del equipo (confirmado 2026-10-07)
 
-- [ ] Modelo completo (¿lleva letra de antena V / H / C? ¿lleva "2D"?)
-- [ ] Banda de frecuencia / región
-- [ ] Número de serie
-- [ ] Versión de firmware (visible desde la app demo)
+- [x] **Modelo completo:** Sled Handheld Reader CS108-2, antena de **polarización circular** ("Cir. Pol.").
+- [x] **Banda de frecuencia / región:** 902–928 MHz (FCC/IC, EE. UU./Canadá) — compatible con México.
+- [x] **Número de serie:** `VPD21C2MP5519`.
+- [x] **FCC ID:** `UB4CS108C1GEN2` · **IC ID:** `8073A-CS1082CA` · **BT MAC:** `6C:79:B8:25:EE:D9`.
+- [ ] Versión de firmware (visible desde la app demo; no leída de la etiqueta).
 
 ## 4. TAGs compatibles
 

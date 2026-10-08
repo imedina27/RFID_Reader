@@ -37,3 +37,84 @@ def create_product(code: str, name: str, presentation: str | None) -> dict:
 
 def update_product(product_id: int, **campos) -> dict:
     return _handle(requests.put(f"{BASE_URL}/products/{product_id}", json=campos, timeout=TIMEOUT))
+
+
+def list_trucks() -> list[dict]:
+    return _handle(requests.get(f"{BASE_URL}/trucks", timeout=TIMEOUT))
+
+
+def create_truck(unit_number: str, plate: str | None, driver: str | None) -> dict:
+    body = {"unit_number": unit_number, "plate": plate, "driver": driver}
+    return _handle(requests.post(f"{BASE_URL}/trucks", json=body, timeout=TIMEOUT))
+
+
+def update_truck(truck_id: int, **campos) -> dict:
+    return _handle(requests.put(f"{BASE_URL}/trucks/{truck_id}", json=campos, timeout=TIMEOUT))
+
+
+def list_tags(**filtros) -> list[dict]:
+    return _handle(requests.get(f"{BASE_URL}/tags", params=filtros, timeout=TIMEOUT))
+
+
+def assign_truck_tag(truck_id: int, epc: str) -> dict:
+    body = {"truck_id": truck_id, "epc": epc}
+    return _handle(requests.post(f"{BASE_URL}/tags/truck", json=body, timeout=TIMEOUT))
+
+
+def delete_tag(epc: str) -> None:
+    return _handle(requests.delete(f"{BASE_URL}/tags/{epc}", timeout=TIMEOUT))
+
+
+def capture_pallet_tag(product_id: int, epc: str) -> dict:
+    body = {"product_id": product_id, "epcs": [epc]}
+    return _handle(requests.post(f"{BASE_URL}/tags/batch", json=body, timeout=TIMEOUT))
+
+
+def update_tag_product(epc: str, product_id: int) -> dict:
+    body = {"product_id": product_id}
+    return _handle(requests.put(f"{BASE_URL}/tags/{epc}", json=body, timeout=TIMEOUT))
+
+
+def reset_delivered_tags() -> dict:
+    return _handle(requests.post(f"{BASE_URL}/tags/reset-delivered", timeout=TIMEOUT))
+
+
+def list_exit_tickets(**filtros) -> list[dict]:
+    return _handle(requests.get(f"{BASE_URL}/exit-tickets", params=filtros, timeout=TIMEOUT))
+
+
+def create_exit_ticket(customer: str, truck_id: int | None, lines: list[dict]) -> dict:
+    body = {"customer": customer, "truck_id": truck_id, "lines": lines}
+    return _handle(requests.post(f"{BASE_URL}/exit-tickets", json=body, timeout=TIMEOUT))
+
+
+def update_exit_ticket(ticket_id: int, **campos) -> dict:
+    return _handle(requests.put(f"{BASE_URL}/exit-tickets/{ticket_id}", json=campos, timeout=TIMEOUT))
+
+
+def assign_exit_ticket_truck(ticket_id: int, truck_id: int) -> dict:
+    body = {"truck_id": truck_id}
+    return _handle(
+        requests.post(f"{BASE_URL}/exit-tickets/{ticket_id}/assign-truck", json=body, timeout=TIMEOUT)
+    )
+
+
+def cancel_exit_ticket(ticket_id: int) -> dict:
+    return _handle(requests.post(f"{BASE_URL}/exit-tickets/{ticket_id}/cancel", timeout=TIMEOUT))
+
+
+def get_dispatch_status(dispatch_id: int) -> dict:
+    return _handle(requests.get(f"{BASE_URL}/dispatches/{dispatch_id}/status", timeout=TIMEOUT))
+
+
+def list_alarms(**filtros) -> list[dict]:
+    return _handle(requests.get(f"{BASE_URL}/alarms", params=filtros, timeout=TIMEOUT))
+
+
+def ack_alarm(alarm_id: int, acknowledged_by: str) -> dict:
+    body = {"acknowledged_by": acknowledged_by}
+    return _handle(requests.post(f"{BASE_URL}/alarms/{alarm_id}/ack", json=body, timeout=TIMEOUT))
+
+
+def deliver_dispatch(dispatch_id: int) -> dict:
+    return _handle(requests.post(f"{BASE_URL}/dispatches/{dispatch_id}/deliver", timeout=TIMEOUT))

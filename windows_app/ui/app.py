@@ -14,21 +14,26 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from ui.pages.alarmas import AlarmasPage
+from ui.pages.boletas import BoletasPage
+from ui.pages.camiones import CamionesPage
+from ui.pages.pallets import PalletsPage
 from ui.pages.placeholder import PlaceholderPage
 from ui.pages.productos import ProductosPage
+from ui.pages.salidas import SalidasPage
 from ui.pages.tablero import TableroPage
 from ui.styles.stylesheet import StyleSheet
 from ui.widgets.imagen_escalada import ImagenEscalada
 
 IMAGES_DIR = Path(__file__).resolve().parent / "images"
 
-# Pantallas de la app Windows (docs/funcional.md, sección 6). "Tablero" ya
-# tiene contenido real; el resto son placeholders hasta que se construyan.
+# Pantallas de la app Windows (docs/funcional.md, sección 6). Las 7 ya
+# tienen contenido real — con esto se cierra la Fase 5.
 NAV_ITEMS = [
     "Tablero",
     "Productos",
     "Camiones",
-    "Etiquetas",
+    "Pallets",
     "Boletas de salida",
     "Salidas a ruta",
     "Alarmas",
@@ -130,7 +135,15 @@ class MainWindow(QMainWindow):
         nav_layout.addWidget(self.nav_list)
         body_layout.addWidget(nav_frame)
 
-        paginas_listas = {"Tablero": TableroPage, "Productos": ProductosPage}
+        paginas_listas = {
+            "Tablero": TableroPage,
+            "Productos": ProductosPage,
+            "Camiones": CamionesPage,
+            "Pallets": PalletsPage,
+            "Boletas de salida": BoletasPage,
+            "Salidas a ruta": SalidasPage,
+            "Alarmas": AlarmasPage,
+        }
         for item in NAV_ITEMS:
             page = paginas_listas[item]() if item in paginas_listas else PlaceholderPage(item)
             self.stacked.addWidget(page)
@@ -145,6 +158,7 @@ class MainWindow(QMainWindow):
     # ----------------------------------------------------------
 
     def apply_theme(self):
+        StyleSheet.current_is_dark = self.is_dark_theme
         theme = StyleSheet.dark_theme if self.is_dark_theme else StyleSheet.light_theme
         self.setStyleSheet(StyleSheet.styles(theme))
         self.theme_button.setIcon(QIcon(theme["theme_icon"]))

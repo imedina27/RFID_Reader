@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.15 — entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) en progreso (Tablero y Productos funcionando); APK (Fases 6-7) con **Captura de Tags (modo Pallet) y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real de `windows_app` (ya no manda al receptor de pruebas): identificación del camión por el EPC de mayor RSSI, selección de boletas, palomeo en vivo, Finalizar con sus dos resultados (correcta / diferencia con "Aceptar" que cancela o deja seguir leyendo según el caso, y "Autorizar salida" con motivo). Pendiente de la APK: Captura de Tags modo Camión y `SimulatedSource`. Diseño detallado de pantallas de Windows (Fase 2) y las pantallas que faltan de la Fase 5 siguen pendientes.
+> **Estado:** v0.20 — hardware (Fase 0) completo (etiqueta de la lectora leída: 902–928 MHz, compatible con México); entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) **completa** (Tablero, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta y Alarmas funcionando); APK (Fases 6-7) con **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real de `windows_app` (ya no manda al receptor de pruebas): identificación del camión por el EPC de mayor RSSI, selección de boletas, palomeo en vivo, Finalizar con sus dos resultados (correcta / diferencia con "Aceptar" que cancela o deja seguir leyendo según el caso, y "Autorizar salida" con motivo). Pendiente de la APK: `SimulatedSource`.
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -28,7 +28,7 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 
 **Salida a Ruta:** parabrisas → boletas activas del camión (se eligen una o varias) → lectura de pallets con el gatillo y palomeo contra lo pedido → *Finalizar lectura* → si cuadra exacto: boletas `despachada`, camión `en ruta`; si no cuadra: alarma en la APK y en Windows, con **Repetir lectura** o **Autorizar con motivo**.
 
-**Captura de Tags:** elegir pallet (producto, modo lote) o camión → leer → guardar la etiqueta asociada. Los pallets que salen de la línea de producción se capturan igual.
+**Captura de Tags:** elegir el producto (modo lote) → leer el pallet → guardar la etiqueta asociada. Los pallets que salen de la línea de producción se capturan igual. (La etiqueta de parabrisas del camión no se captura desde la APK de pruebas; los camiones ya llegan con la suya cargada directo en la base de datos.)
 
 ---
 
@@ -61,12 +61,11 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 ## 3. Pendientes por confirmar
 
 - [ ] **Prueba de lectura en un camión real cargado** (porcentaje de pallets leídos) y **dónde pegar la etiqueta** en el pallet de madera (con y sin emplaye).
-- [ ] **Diseño de las pantallas** de la APK y de Windows (Fase 2).
-- [ ] Supuestos de `docs/funcional.md` sección 8 (etiqueta de un solo uso, un producto por pallet, autorización con motivo sin contraseña, regreso de ruta manual).
-- [ ] Etiqueta de la lectora: banda de frecuencia (debe ser 902–928 MHz en México), modelo completo y número de serie.
+- [ ] Supuestos de `docs/funcional.md` sección 8 aún sin confirmar con el usuario: etiqueta de un solo uso, un producto por pallet. El supuesto de autorización con motivo y nombre, sin contraseña, ya quedó confirmado al construirse tal cual en `AutorizarActivity`. El de "Marcar disponible" manual se descartó (ver "Ya resuelto"): para esta demo no hay botón que regrese un camión a `available`; si hace falta reusar un camión entre pruebas, se resetea directo en PostgreSQL (como se hizo durante las pruebas de Salida a Ruta).
 - [ ] Abrir el puerto 5000 en el firewall de Windows (requiere PowerShell como administrador; no se pudo ejecutar desde esta sesión por falta de permisos elevados).
-- [ ] Boletas de ejemplo reales para la demo (depende de clientes/camiones confirmados en la Fase 2).
+- [ ] Boletas de ejemplo reales para la demo (depende de clientes confirmados en la Fase 2; los camiones ya están definidos — ver "Ya resuelto").
 - [ ] Instalar **Android Studio** (la IDE completa) para poder editar con autocompletado y depurar con el S24 Ultra conectado por USB — por ahora solo se instalaron JDK 17 y las herramientas de línea de comandos del SDK (suficiente para compilar).
+- [ ] **Relleno morado del botón "Limpiar Estado"** (Pallets, Windows): no se logró que el estilo nativo de Windows lo pintara; queda con el estilo normal de los demás botones por ahora (ver Fase 5).
 
 ### Ya resuelto
 
@@ -84,6 +83,12 @@ Etiqueta ~~UHF~~ CS108-2 ──BLE──► Celular (APK) ──WiFi/HTTP──�
 - [x] **110 camiones reales** cargados con su etiqueta de parabrisas (`windows_app/import_trucks.py`, a partir del archivo de flota del usuario; 4 registros con número económico repetido se resolvieron quedándose con el más reciente).
 - [x] JDK 17 (Temurin) y las herramientas de línea de comandos del SDK de Android instaladas localmente (sin la IDE); `android_app/` compila: `app-debug.apk` generado y verificado (paquete, permisos y versiones correctas con `aapt2 dump badging`).
 - [x] **Captura de Tags (modo Pallet) y Salida a Ruta completas, probadas de punta a punta con hardware real contra la API real** (2026-10-06): ver detalle en Fases 6 y 7 y en `docs/apk.md`/`docs/funcional.md`. Incluye mockups aprobados por el usuario para cada pantalla antes de programarlas.
+- [x] **Diseño de las pantallas de la APK (Fase 2, parte APK):** menú principal, Captura de Tags y las 4 pantallas de Salida a Ruta (parabrisas, boletas, palomeo, resultado) definidas con el usuario mediante mockups (Artifact) antes de programarlas.
+- [x] **Diseño de las pantallas de Windows (Fase 2, parte Windows):** las 7 pantallas ya están construidas (Tablero, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta, Alarmas) — la mayoría directo, sin boceto previo, con el mismo patrón visual que Productos.
+- [x] **Camiones definidos (Fase 2, parte camiones):** 110 camiones reales cargados con número económico, placa y etiqueta de parabrisas (`windows_app/import_trucks.py`). Quedan pendientes las boletas de ejemplo reales.
+- [x] Supuesto de `docs/funcional.md` sección 8 "autorización con motivo sin contraseña de supervisor": confirmado al construirse exactamente así en `AutorizarActivity` (texto de motivo + nombre, sin contraseña).
+- [x] **Etiqueta de la lectora leída** (2026-10-07): banda **902–928 MHz** (FCC ID `UB4CS108C1GEN2`, IC ID `8073A-CS1082CA`, región EE. UU./Canadá, compatible con México), antena de polarización circular, S/N `VPD21C2MP5519` — ver `docs/lectora.md`. **Fase 0 queda completa.**
+- [x] **"Marcar disponible" descartado** (decisión del usuario, 2026-10-07): no hace falta para esta demo. `docs/funcional.md` y la pantalla Camiones ya no lo mencionan; si se necesita reusar un camión entre pruebas, se resetea directo en PostgreSQL.
 
 ---
 
@@ -117,7 +122,7 @@ RFID_Reader/
 │   ├── lectora.md    tag.md           apk.md
 ├── windows_app/
 │   ├── main.py  api.py  db.py  schema.sql  .env.example
-│   └── ui/                 # pantallas (Tablero, Productos, Camiones, Etiquetas, Boletas, Salidas, Alarmas)
+│   └── ui/                 # pantallas (Tablero, Productos, Camiones, Pallets, Boletas, Salidas, Alarmas)
 └── android_app/            # proyecto Kotlin
 ```
 
@@ -125,11 +130,11 @@ RFID_Reader/
 
 ## 5. Fases y tareas
 
-### Fase 0 — Hardware ✅ (casi completa)
+### Fase 0 — Hardware ✅ completa
 
 - [x] Lectora CS108-2 identificada; etiqueta Beontag definida.
 - [x] Lectora, S24 Ultra y etiqueta leyendo con la app demo de CSL.
-- [ ] Leer la etiqueta de la lectora: banda, antena y número de serie.
+- [x] Leer la etiqueta de la lectora: banda 902–928 MHz (FCC/IC, compatible con México), antena de polarización circular, S/N `VPD21C2MP5519` — ver `docs/lectora.md`.
 
 ### Fase 1 — Pruebas físicas y estudio del SDK
 
@@ -144,8 +149,10 @@ RFID_Reader/
 
 ### Fase 2 — Diseño de pantallas
 
-- [ ] Definir con el usuario los diseños (bocetos) de las pantallas de la APK y de Windows listadas en `docs/funcional.md`, sección 6.
-- [ ] Definir camiones (número económico y placa) y boletas de ejemplo para la demo.
+- [x] Definir con el usuario los diseños (bocetos) de las pantallas de la APK listadas en `docs/funcional.md`, sección 6 (menú principal, Captura de Tags, Salida a Ruta).
+- [x] Pantallas de Windows: Camiones, Pallets, Boletas de salida, Salidas a ruta y Alarmas ya se construyeron directo, con el mismo patrón que Productos, sin boceto previo.
+- [x] Definir camiones (número económico y placa): 110 camiones reales cargados con su etiqueta de parabrisas.
+- [ ] Boletas de ejemplo para la demo (depende de clientes confirmados).
 
 ### Fase 3 — Entorno de desarrollo ✅
 
@@ -168,14 +175,19 @@ RFID_Reader/
   netsh advfirewall firewall add rule name="RFID API" dir=in action=allow protocol=TCP localport=5000
   ```
 
-### Fase 5 — App Windows: interfaz (en progreso)
+### Fase 5 — App Windows: interfaz ✅ (casi completa)
 
 - [x] Armazón de la ventana (PyQt6): encabezado, logo e imagen corporativa reutilizados de `Cam_Lens_V2` (`windows_app/ui/`), navegación a la **derecha** con las 7 pantallas y tema oscuro/claro (corregido: los botones no seleccionados ya se ven bien en modo claro).
 - [x] Proceso único funcionando: Flask corre en un hilo secundario y la ventana en el hilo principal (`windows_app/main.py`).
 - [x] **Tablero**: estado de PostgreSQL, alarmas abiertas, camiones en ruta y salidas del día, consultando PostgreSQL directamente (no vía HTTP) con refresco cada 2 s.
+  - **Panel en vivo** (2026-10-07): el camión (SVG vista superior del usuario, recoloreado por tema — `light_camion.svg`/`dark_camion.svg`, 0.8x de su tamaño natural) **no se ve al inicio**; aparece con una animación simple de izquierda a derecha (como entrando en pantalla, con desaceleración al final) en cuanto se escanea el parabrisas, y mientras escanea pallets se ven círculos de pulso morados sobre la caja de carga (misma idea del "leyendo" que tenía la APK). Todo el dibujo (camión, pulso y animación de entrada) queda recortado a su propio widget — nunca se monta sobre "Boletas asignadas" ni el resto. El camión se centra de verdad en el panel dándole el mismo peso (`stretch`) a la zona izquierda (boletas + datos) y a la derecha (semáforo), con el camión en medio — así no depende de cuánto contenido tenga cada lado. Secuencia completa: (1) al escanear el parabrisas, el camión aparece — esto no se guarda en la base, se anota en memoria compartida del mismo proceso (`windows_app/live_state.py`, nuevo) porque `GET /dispatch/lookup` no persiste nada; (2) al confirmar boletas (`POST /dispatches`, ya hay salida real) aparecen en la lista y empiezan los círculos; (3) al terminar la salida se apagan los círculos y se pinta el semáforo (verde `completed`, amarillo `completed_with_difference`, rojo `cancelled`) — el color sale directo de `dispatches.status`, sin llamar a la API; (4) todo se congela 5 s y el panel se limpia solo (el camión vuelve a ocultarse). La barra de resumen (PostgreSQL/Alarmas/Camiones en ruta/Salidas del día) se movió al fondo de la pantalla, en franja horizontal. Nuevos `windows_app/ui/widgets/camion_vivo.py` (SVG + pulso + entrada, `QPainter`/`QSvgRenderer`) y `semaforo.py` (3 círculos, con su propio límite de altura para no estirarse). `StyleSheet.current_is_dark` nuevo (bandera que lee el widget del camión para saber qué SVG usar, sin necesidad de conectar señales de cambio de tema). Probado en vivo de punta a punta por `curl` (escaneo → boletas → salida exacta → semáforo verde → limpieza) y a ojo con el usuario en varias rondas de ajuste visual, sin errores en el log.
 - [x] **Productos**: catálogo con alta, edición (nombre/presentación) y baja/reactivación (`active`), vía la API HTTP (`windows_app/ui/api_client.py`, `windows_app/ui/dialogs/producto_dialog.py`). La "baja" no borra el renglón (el `id` sigue referenciado por etiquetas y líneas de boleta).
-- [ ] Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta (monitor en vivo) — siguen como placeholders ("en construcción") en `windows_app/ui/pages/`.
-- [ ] Aviso visual y sonoro de alarmas (el Tablero ya muestra el conteo, falta el aviso sonoro/destacado).
+- [x] **Camiones** (2026-10-07): alta, edición (placa/chofer; el número económico no se puede cambiar, igual que la clave de un producto) y columna de **etiqueta de parabrisas** (cruzada con `GET /tags?kind=truck`). Botón **"Asignar etiqueta"** siempre disponible (con o sin etiqueta previa): abre la misma ventana de edición con Número económico/Placa/Chofer deshabilitados y solo el campo Etiqueta activo, para asignarla, cambiarla o borrarla (pega el EPC a mano — reemplaza la captura por APK que se sacó de alcance); al aceptar, borra la etiqueta anterior (`DELETE /tags/{epc}`) antes de crear la nueva (`POST /tags/truck`), porque el backend no soporta reemplazar en un solo paso. **Sin "Marcar disponible"**: decisión del usuario, no hace falta para esta demo. Mismo patrón que Productos (`windows_app/ui/pages/camiones.py`, `windows_app/ui/dialogs/camion_dialog.py`). Probado en vivo contra los 111 camiones reales de la base, incluido el reemplazo de una etiqueta.
+- [x] **Pallets** (2026-10-07, versión simplificada a pedido del usuario): lista **solo de las etiquetas de pallet** (`GET /tags?kind=pallet`) — las de camión no aparecen aquí, se administran en Camiones. Ordenada por `captured_at DESC` (ya viene así del backend), con refresco automático cada 2 s (`QTimer`, igual que el Tablero) preservando la selección — para que una captura nueva desde la APK aparezca sola. Botón **Agregar** (captura manual: EPC + producto, `POST /tags/batch`) y **Editar** (corrige el producto, `PUT /tags/{epc}`). Sin filtros ni botón de eliminar — se dejaron fuera a pedido del usuario. Mismo patrón que Productos/Camiones (`windows_app/ui/pages/pallets.py`, `windows_app/ui/dialogs/pallet_dialog.py`). Probado en vivo: captura y aparición inmediata verificadas por `curl`.
+  - **Botón "Limpiar Estado"** (2026-10-07, solo para la demo): separado de Agregar/Editar con un espacio ancho, siempre activo, pide confirmación. **Pendiente lo visual:** se intentó un relleno morado (`#7E57C2`, el mismo de `Cam_Lens_V2/styles/stylesheet.py`) con un `QPushButton#purple_button` nuevo, pero el estilo nativo de Windows (`windowsvista`) no lo pintó ni agregando un borde explícito; a pedido del usuario se dejó por ahora con el mismo estilo que los demás botones (`edit_button`) y se quitó el CSS sin usar — revisar más adelante si hace falta. Regresa a `captured` los pallets cuya salida **más reciente** ya quedó **entregada** (`completed`/`completed_with_difference` + `delivered_at`), para reutilizar las mismas etiquetas físicas en otro ensayo; no toca los que siguen en ruta o no han salido. (El caso "boleta/salida cancelada" que se discutió no necesitó código aparte: una salida cancelada nunca llega a marcar sus pallets como `dispatched`, así que no hay nada que limpiar ahí.) Nuevo endpoint `POST /api/tags/reset-delivered` (usa el `epc` del `dispatch_reads` más reciente por etiqueta, vía `DISTINCT ON`). Probado en vivo por `curl`: 3 pallets de una salida entregada volvieron a `capturada`; una segunda llamada confirma que ya no queda nada por limpiar.
+- [x] **Boletas de salida** (2026-10-07): alta con **folio automático** (`exit_ticket_folio_seq`, `BOL-000123`, mismo patrón que el folio de pallets — cambio de backend en `api.py`/`schema.sql`), cliente en texto libre (sin tabla de clientes), líneas (producto + cantidad de pallets, sin tags específicos) editables en una tabla embebida dentro del diálogo (`+ Línea`/quitar línea), y camión limitado a los **`disponibles`** de Camiones (una vez asignado no se puede quitar, solo cambiar a otro disponible — la API no soporta desasignar). Botones **Agregar**, **Editar** (y **Cancelar boleta**, con confirmación) habilitados solo si la boleta está `active`. `windows_app/ui/pages/boletas.py`, `windows_app/ui/dialogs/boleta_dialog.py`, nuevas funciones en `api_client.py` (`list_exit_tickets`, `create_exit_ticket`, `update_exit_ticket`, `assign_exit_ticket_truck`, `cancel_exit_ticket`). Probado en vivo por `curl`: folio generado, asignar camión, cancelar, y bloqueo de edición tras cancelar.
+- [x] **Salidas a ruta** (2026-10-07): historial de salidas (más reciente arriba), con refresco automático cada 2 s y 4 filtros (Estado, Camión, Cliente, Folio de boleta — estos dos últimos resueltos con `EXISTS` contra `exit_tickets`, ya que una salida puede tener varias boletas). **Separé "cómo salió" de "en qué parte del proceso va"** para no perder información: `dispatches.status` (`completed`/`completed_with_difference`) no cambia nunca y da la columna **Tipo de salida** (Normal / Con autorización); la columna **Estado** (No ha salido / En ruta / Entregado / Cancelada) se calcula combinando `status` con la columna nueva `delivered_at` — cambio de backend: `schema.sql` (`delivered_at TIMESTAMPTZ`, con `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` porque la base ya existía) y endpoint nuevo `POST /api/dispatches/{id}/deliver` (solo si `completed`/`completed_with_difference` y aún no entregada; marca `delivered_at` y pone el camión `available`). Botón **"Ver detalle"**: palomeo completo coloreado (igual que la APK), con refresco propio cada 2 s si la salida sigue "No ha salido" (monitor en vivo) o foto fija si ya terminó — reusa `GET /dispatches/{id}/status`, sin backend nuevo. Botón **"Unidad en planta"**: solo si "En ruta". Windows no crea ni modifica salidas (eso lo hace la APK); esta pantalla es de consulta. El historial se consulta con SQL directo a PostgreSQL (no hay endpoint de listado), igual que el Tablero. `windows_app/ui/pages/salidas.py`, `windows_app/ui/dialogs/salida_detalle_dialog.py`. Probado en vivo por `curl` y SQL directo: entregar una salida, bloquear una segunda entrega, y verificar el cálculo de Estado/Tipo de salida.
+- [x] **Alarmas** (2026-10-07): lista con filtro Abiertas/Atendidas/Todas, más reciente arriba, refresco automático cada 2 s, columnas Fecha/Tipo/Camión (cruzado con el camión de la salida que la generó)/Mensaje/Atendida por/Estado. **Aviso visual**: filas abiertas resaltadas en amarillo (`faltante`) o rojo (`excedente`/`etiqueta no registrada`/`pallet ya despachado`). **Aviso sonoro**: compara los IDs de alarmas abiertas en cada refresco y suena un beep (`QApplication.beep()`, sin archivos de audio) si aparece una nueva. Botón **Marcar atendida** (pide el nombre de quien atiende, `POST /alarms/{id}/ack`). Solo cubre los 4 tipos que de verdad se guardan en `alarms` — "camión sin boletas activas"/"camión no disponible" se quedan como avisos solo de la APK, sin guardarse (decisión del usuario). Cambio chico de backend: `GET /api/alarms` ahora además cruza el camión (`truck_unit_number`) vía `dispatch_id`. `windows_app/ui/pages/alarmas.py`, nuevas funciones en `api_client.py` (`list_alarms`, `ack_alarm`). Probado en vivo por `curl`: alarma de prueba listada, marcada atendida y confirmada en el filtro correspondiente.
 - [ ] Aviso claro si PostgreSQL o la API no están disponibles (el Tablero ya marca "No disponible" en rojo; falta un aviso más visible en el resto de pantallas).
 
 ### Fase 6 — APK: lectura (versión mínima en progreso)
@@ -195,12 +207,13 @@ RFID_Reader/
 - [x] Corregido de paso: la potencia ajustada en Ajustes solo se aplicaba una vez al conectar; ahora también se reaplica en `onResume()` si ya hay conexión activa.
 - [x] **Lectura de un solo EPC por mayor RSSI** (parabrisas, 2026-10-06): en Salida a Ruta se acumula el RSSI más alto visto por EPC mientras el gatillo está presionado y, al soltar, se usa el ganador — resuelve leer de más con etiquetas de camiones vecinos cerca.
 - [x] **Menú principal**: dos botones grandes ("Captura de Tags", "Salida a Ruta") en la pantalla de conexión, desactivados hasta que la lectora queda lista.
+- [x] **Ícono de la app** (2026-10-07): se quitó el ícono genérico de Android (`@android:drawable/sym_def_app_icon`, el robot con cuadrícula) y se puso un ícono adaptativo con el isotipo de Quantum Labs (`logo_quantum.png` recortado y centrado como `ic_launcher_foreground.png`) sobre fondo de marca `#FAF8F6` (`ic_launcher_background`). Como `minSdk` es 26, solo hace falta `mipmap-anydpi-v26/ic_launcher.xml` (y su versión `_round`), sin PNGs por densidad. Confirmado con `aapt2 dump badging` que el APK ya referencia el ícono nuevo.
 - [ ] `SimulatedSource` (modo sin hardware) — el interruptor en Ajustes ya existe pero todavía no simula lecturas.
 
 ### Fase 7 — APK: flujos
 
-- [x] **Captura de Tags, modo Pallet** (2026-10-06): un EPC a la vez (se corta el inventario en el primer tag nuevo), selector de producto (que se queda fijo entre lecturas), `POST /api/tags/batch` real, ventana de advertencia si la etiqueta ya existe (capturada, de otro producto, de camión o despachada) y aviso de 3 s al guardar. Simplifica el "modo lote" original de `docs/funcional.md` a pedido del usuario — la etiqueta de un solo uso y la asociación a un producto no cambian.
-- [ ] **Captura de Tags, modo Camión** (elegir camión → leer parabrisas → `POST /api/tags/truck`) — no empezado.
+- [x] **Captura de Tags** (2026-10-06): un EPC a la vez (se corta el inventario en el primer tag nuevo), selector de producto (que se queda fijo entre lecturas), `POST /api/tags/batch` real, ventana de advertencia si la etiqueta ya existe (capturada, de otro producto, de camión o despachada) y aviso de 3 s al guardar. Simplifica el "modo lote" original de `docs/funcional.md` a pedido del usuario — la etiqueta de un solo uso y la asociación a un producto no cambian.
+- [x] ~~Captura de Tags, modo Camión~~ — **fuera de alcance de la APK de pruebas** (decisión del usuario, 2026-10-07): los camiones ya llegan con su etiqueta de parabrisas asociada por carga directa a la base de datos (`windows_app/import_trucks.py`), así que no hace falta una pantalla en la APK para esto.
 - [x] **Salida a Ruta completa** (2026-10-06), probada de punta a punta con hardware real contra la API real: `SalidaRutaActivity` (parabrisas → camión encontrado/advertencia) → `BoletasActivity` (selección múltiple con casillas, `POST /dispatches`) → `PalomeoActivity` (lectura continua, palomeo con color, Reiniciar/Finalizar) → `AutorizarActivity` (motivo + nombre). Ver `docs/funcional.md` "Resultado en caso de diferencia" para la lógica de cuándo "Aceptar" cancela la salida (unidad regresa a zona de carga) o solo deja seguir leyendo.
 - [x] Pantalla de ajustes (IP, puerto, potencia, modo simulado) — hecha desde la Fase 6.
 - [ ] Manejo de errores más robusto: tiempos de espera, Bluetooth desconectado a medio palomeo (hoy hay avisos básicos, no es robusto).
@@ -255,7 +268,6 @@ RFID_Reader/
 | Captura accidental de etiquetas ajenas en modo lote | Confirmación cuando se leen varias etiquetas nuevas a la vez |
 | La API o PostgreSQL no están disponibles al presentar | Verificación al arrancar, aviso claro, probar antes |
 | `psycopg` o la librería de interfaz sin paquete para Python 3.14 | Probar en la Fase 3; si falla, Python 3.13 |
-| La banda de la lectora no corresponde a México | Revisar la etiqueta (902–928 MHz) |
 | Falla Bluetooth o el SDK en la presentación | Modo simulado + video de respaldo |
 | IP cambia o el firewall bloquea | IP visible en el Tablero; regla de firewall probada antes |
 | One UI cierra el Bluetooth en segundo plano | APK en primer plano, pantalla encendida, batería sin restricciones |
@@ -264,8 +276,8 @@ RFID_Reader/
 
 ## 8. Criterios de éxito de la demo
 
-- [x] Se capturan etiquetas de pallets (por producto) desde la APK — probado con hardware real, falta el modo Camión (ver Fase 7).
-- [ ] Se crea una boleta en Windows y se asigna a un camión (hoy se hace directo en la base de datos para pruebas; falta la pantalla de Boletas en Windows, Fase 5).
+- [x] Se capturan etiquetas de pallets (por producto) desde la APK — probado con hardware real.
+- [x] Se crea una boleta en Windows y se asigna a un camión — pantalla Boletas de salida (Fase 5), probada en vivo.
 - [x] En la APK: parabrisas → boletas → lectura de pallets con el gatillo → palomeo → *Finalizar* — probado de punta a punta con hardware real.
 - [x] Si cuadra: boleta `despachada`, pallets `despachados` y camión `en ruta` — confirmado en la base de datos.
 - [x] Si no cuadra: alarma registrada y la unidad regresa a la zona de carga (o se autoriza la salida con motivo) — probados ambos caminos con hardware real.
@@ -275,9 +287,8 @@ RFID_Reader/
 
 ## 9. Próximos pasos inmediatos
 
-1. **Terminar la Fase 7 de la APK**: Captura de Tags modo Camión (`POST /tags/truck`) y `SimulatedSource` (modo sin hardware, plan B de la demo).
-2. **Seguir con la Fase 5**: construir las pantallas que faltan (Camiones, Etiquetas/Captura, Boletas de salida, Salidas a ruta — esta última ya tiene su contraparte funcionando en la APK) sobre el armazón PyQt6 ya armado.
-3. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red (hoy se probó con ambos en la misma Wi-Fi normal, falta probar con el hotspot).
-4. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
-5. **Diseñar los detalles de cada pantalla** (Fase 2) a medida que se construyen, o antes si se prefiere bocetarlas todas primero.
-6. Instalar Android Studio cuando se quiera editar/depurar con más comodidad (no es bloqueante: ya se puede compilar, instalar y ver logs por línea de comandos).
+1. **Terminar la Fase 7 de la APK**: `SimulatedSource` (modo sin hardware, plan B de la demo).
+2. **Abrir el puerto 5000 en el firewall** desde PowerShell como administrador (ver Fase 4) y probar `GET /api/health` desde el celular en la misma red (hoy se probó con ambos en la misma Wi-Fi normal, falta probar con el hotspot).
+3. **Prueba en camión real cargado** con la app demo de CSL (Fase 1): porcentaje de pallets leídos y posición de la etiqueta.
+4. **Boletas de ejemplo reales** para la demo, en cuanto haya clientes/camiones confirmados para el guion de la presentación.
+5. Instalar Android Studio cuando se quiera editar/depurar con más comodidad (no es bloqueante: ya se puede compilar, instalar y ver logs por línea de comandos).

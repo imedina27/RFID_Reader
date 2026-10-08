@@ -21,6 +21,11 @@ _FAIL = "#D9534F"
 
 class StyleSheet:
 
+    # Tema actual (lo pone MainWindow.apply_theme al arrancar y al cambiar de
+    # tema); widgets que dibujan algo propio (como el camión del Tablero) lo
+    # leen directo en su repintado, sin necesidad de conectar señales.
+    current_is_dark = True
+
     light_theme = {
         "background": "#FAF8F6",
         "text": "#1E1E28",
@@ -31,7 +36,8 @@ class StyleSheet:
         "theme_icon": str(ICONS_DIR / "light.png"),
         "open_icon": str(ICONS_DIR / "light_arrow_open.png"),
         "close_icon": str(ICONS_DIR / "light_arrow_close.png"),
-        "dropdown_arrow": str(ICONS_DIR / "light_dropdown.png"),
+        "dropdown_arrow": (ICONS_DIR / "light_dropdown.png").as_posix(),
+        "truck_svg": str(ICONS_DIR / "light_camion.svg"),
     }
 
     dark_theme = {
@@ -44,7 +50,8 @@ class StyleSheet:
         "theme_icon": str(ICONS_DIR / "dark.png"),
         "open_icon": str(ICONS_DIR / "dark_arrow_open.png"),
         "close_icon": str(ICONS_DIR / "dark_arrow_close.png"),
-        "dropdown_arrow": str(ICONS_DIR / "dark_dropdown.png"),
+        "dropdown_arrow": (ICONS_DIR / "dark_dropdown.png").as_posix(),
+        "truck_svg": str(ICONS_DIR / "dark_camion.svg"),
     }
 
     @staticmethod
@@ -217,7 +224,6 @@ class StyleSheet:
         QPushButton#edit_button:disabled {{
             color: {t['border']};
         }}
-
         /* ====================================================
            TABLAS
            ==================================================== */

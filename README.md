@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.15.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) en progreso (Tablero y Productos); la APK tiene **Captura de Tags (modo Pallet) y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real (S24 Ultra + CS108-2). Falta Captura de Tags modo Camión y el modo simulado (ver `docs/apk.md` y `ROADMAP.md`).
+**Versión:** 0.20.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) **completa** (Tablero con panel en vivo del escaneo, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta y Alarmas); la APK tiene **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real (S24 Ultra + CS108-2), e ícono propio con el isotipo de Quantum Labs. Falta el modo simulado de la APK (ver `docs/apk.md` y `ROADMAP.md`).
 
 ## Cómo funciona
 
@@ -44,9 +44,9 @@ RFID_Reader/
 ├── windows_app/
 │   ├── schema.sql  db.py  api.py  verification.py  seed.py  import_trucks.py  main.py
 │   ├── .env (no versionado)  .env.example
-│   ├── ui/                # interfaz PyQt6 (armazón + Tablero + Productos; imagen corporativa de Cam_Lens_V2)
+│   ├── ui/                # interfaz PyQt6 completa: Tablero, Productos, Camiones, Pallets, Boletas, Salidas, Alarmas (imagen corporativa de Cam_Lens_V2)
 │   └── tests/            # pruebas pytest (verification.py)
-├── android_app/          # proyecto Kotlin: Captura de Tags (Pallet) y Salida a Ruta completas
+├── android_app/          # proyecto Kotlin: Captura de Tags y Salida a Ruta completas
 └── tools/
     └── tag_receiver.py    # receptor de prueba en consola, fuera de la app principal
 ```
@@ -101,7 +101,7 @@ RFID_Reader/
    netsh advfirewall firewall add rule name="RFID API" dir=in action=allow protocol=TCP localport=5000
    ```
 
-6. **Red:** activar el *Hotspot móvil* de Windows y conectar el celular. La IP de la laptop se muestra en el Tablero de la app (Fase 5, por construir).
+6. **Red:** activar el *Hotspot móvil* de Windows y conectar el celular. La IP de la laptop se muestra en el Tablero de la app.
 7. **Ejecutar la app:**
 
    ```powershell

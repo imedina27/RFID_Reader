@@ -11,6 +11,86 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 - *(nada por ahora)*
 
+## [0.20.0] - 2026-10-07
+
+### Añadido
+
+- **Panel en vivo del Tablero**: el camión (SVG vista superior proporcionado por el usuario, decorativo — no refleja la cantidad real de pallets; recoloreado por tema, `light_camion.svg`/`dark_camion.svg` a partir del original en gris `#969696`) **no se ve al inicio**: aparece con una animación de izquierda a derecha (con desaceleración, recortada a su propio widget) en cuanto se escanea el parabrisas, con círculos de pulso morados mientras escanea pallets (recicla la idea del "leyendo" que tenía la APK y se quitó de ahí). Se centra de verdad dándole el mismo peso a la zona izquierda (Boletas asignadas + Datos de la unidad) y a la derecha (semáforo). El semáforo se pinta al terminar la salida (verde `completed`, amarillo `completed_with_difference`, rojo `cancelled`) y todo se congela 5 s antes de limpiarse solo. La barra de resumen (PostgreSQL/Alarmas/Camiones en ruta/Salidas del día) se movió al fondo de la pantalla. `windows_app/ui/widgets/camion_vivo.py` (SVG + pulsos + animación de entrada con `QPainter`/`QSvgRenderer`), `windows_app/ui/widgets/semaforo.py`, `windows_app/ui/pages/tablero.py` ampliado.
+- **`windows_app/live_state.py`**: estado efímero en memoria (no se persiste) compartido entre el hilo de Flask y la ventana, para que el Tablero sepa "se acaba de escanear un camión" aunque `GET /api/dispatch/lookup` no guarde nada en la base — se pierde si se reinicia la app, a propósito.
+
+### Cambiado
+
+- `GET /api/dispatch/lookup/{epc}`: ahora anota el camión resuelto en `live_state` (sin cambiar la respuesta ni el comportamiento de la APK).
+- `StyleSheet` (Windows): nueva bandera `current_is_dark`, que `MainWindow.apply_theme()` actualiza y que el widget del camión lee directo en su repintado para saber qué SVG usar, sin necesidad de conectar señales de cambio de tema (primer widget de una pantalla con un ícono propio por tema).
+
+### Documentación
+
+- `docs/funcional.md`: descripción del Tablero actualizada con el panel en vivo.
+
+## [0.19.0] - 2026-10-07
+
+### Añadido
+
+- **Pantalla Alarmas (app Windows) — cierra la Fase 5**: lista con filtro Abiertas/Atendidas/Todas, más reciente arriba, refresco automático cada 2 s. Columnas Fecha, Tipo, Camión (cruzado con la salida que la generó), Mensaje, Atendida por y Estado. **Aviso visual**: filas abiertas resaltadas en amarillo (`faltante`) o rojo (`excedente`/`etiqueta no registrada`/`pallet ya despachado`). **Aviso sonoro**: compara los IDs de alarmas abiertas en cada refresco y suena un beep (`QApplication.beep()`, sin archivos de audio) si aparece una nueva. Botón **Marcar atendida** (pide el nombre de quien atiende, `POST /api/alarms/{id}/ack`). Decisión del usuario: solo cubre los 4 tipos que de verdad se guardan en `alarms` (`missing`, `excess`, `unknown_tag`, `already_dispatched`); `no_active_tickets`/`truck_not_available` se quedan como avisos solo de la APK, sin persistirse. `windows_app/ui/pages/alarmas.py`, nuevas funciones en `api_client.py` (`list_alarms`, `ack_alarm`).
+
+### Cambiado
+
+- **`GET /api/alarms`** ahora cruza el camión de la salida que generó la alarma (`truck_unit_number`, vía `dispatch_id`) y acepta `status=open|ack|all`. Documentado en `docs/api.md`.
+
+### Documentación
+
+- `docs/funcional.md`: descripción de la pantalla Alarmas actualizada a lo realmente construido.
+
+## [0.18.0] - 2026-10-07
+
+### Añadido
+
+- **Botón "Limpiar Estado" en Pallets (app Windows), solo para la demo**: separado a propósito de Agregar/Editar con un espacio ancho, siempre activo, pide confirmación. Regresa a `captured` los pallets cuya salida **más reciente** ya quedó **entregada** (`completed`/`completed_with_difference` + `delivered_at`), para reutilizar las mismas etiquetas físicas en otro ensayo de la demo; no toca los que siguen en ruta o no han salido. Nuevo endpoint `POST /api/tags/reset-delivered`. `windows_app/ui/pages/pallets.py`, nueva función `reset_delivered_tags()` en `api_client.py`.
+
+### Pendiente
+
+- **Relleno morado del botón "Limpiar Estado"**: se intentó con un nuevo estilo `QPushButton#purple_button` (`#7E57C2`, el mismo morado de `Cam_Lens_V2/styles/stylesheet.py`), pero el estilo nativo `windowsvista` no lo pintó (ni agregando un borde explícito del mismo color, el truco habitual para este problema). A pedido del usuario se quitó el estilo sin usar y el botón quedó igual que los demás (`edit_button`) por ahora.
+
+### Documentación
+
+- `docs/api.md` y `docs/funcional.md`: documentado el endpoint y el botón nuevos.
+
+## [0.17.0] - 2026-10-07
+
+### Añadido
+
+- **Pantalla Salidas a ruta (app Windows)**: historial de salidas (más reciente arriba), con refresco automático cada 2 s y 4 filtros (Estado, Camión, Cliente, Folio de boleta). Se separó **"cómo salió"** de **"en qué parte del proceso va"** para no perder información al entregar: `dispatches.status` (`completed`/`completed_with_difference`) ya no cambia nunca y da la columna **Tipo de salida** (Normal / Con autorización); la columna **Estado** (No ha salido / En ruta / Entregado / Cancelada) se calcula combinando `status` con la columna nueva `delivered_at`. Botón **"Ver detalle"**: palomeo completo coloreado (verde/amarillo/rojo, igual que la APK), con refresco propio cada 2 s si la salida sigue "No ha salido" (monitor en vivo) o foto fija si ya terminó — reusa `GET /api/dispatches/{id}/status`. Botón **"Unidad en planta"**: solo si "En ruta"; marca la salida como entregada y libera el camión. Windows no crea ni modifica salidas (eso lo hace la APK); el historial se consulta con SQL directo a PostgreSQL (no hay endpoint de listado), igual que el Tablero. `windows_app/ui/pages/salidas.py`, `windows_app/ui/dialogs/salida_detalle_dialog.py`, nuevas funciones en `api_client.py` (`get_dispatch_status`, `deliver_dispatch`).
+
+### Cambiado
+
+- **`dispatches` tiene una columna nueva, `delivered_at`** (`windows_app/schema.sql`, con migración `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` porque la base ya existía), y un endpoint nuevo, **`POST /api/dispatches/{id}/deliver`** (solo si la salida está `completed`/`completed_with_difference` y aún no entregada; marca `delivered_at` y pone el camión `available`, en una sola operación). Documentado en `docs/api.md` y `docs/modelo_datos.md`.
+
+### Documentación
+
+- `docs/funcional.md`: descripción de la pantalla Salidas a ruta actualizada a lo realmente construido (filtros, columnas Estado/Tipo de salida, botones Ver detalle/Unidad en planta).
+
+## [0.16.0] - 2026-10-07
+
+### Añadido
+
+- **Ícono de la app** (2026-10-07): reemplazado el ícono genérico de Android (`@android:drawable/sym_def_app_icon`) por un ícono adaptativo con el isotipo de Quantum Labs. Nuevo `android_app/app/src/main/res/drawable/ic_launcher_foreground.png` (generado a partir de `logo_quantum.png`, recortado y centrado dentro de la zona segura) + `@color/ic_launcher_background` (`#FAF8F6`) + `mipmap-anydpi-v26/ic_launcher.xml`/`ic_launcher_round.xml`. Sin PNGs por densidad porque `minSdk` ya es 26.
+- **Pantalla Camiones (app Windows)** (2026-10-07): alta, edición de placa/chofer y columna de etiqueta de parabrisas. El botón **"Asignar etiqueta"** siempre está disponible (con o sin etiqueta previa) y abre la misma ventana de edición con Número económico/Placa/Chofer deshabilitados y solo el campo Etiqueta activo, para asignarla, cambiarla o borrarla (`CamionDialog`, modo `"etiqueta"`); al aceptar, si había una etiqueta distinta se borra (`DELETE /api/tags/{epc}`) antes de crear la nueva (`POST /api/tags/truck`) — el backend no soporta reemplazar en un solo paso. Sin "Marcar disponible": no hace falta para esta demo (decisión del usuario). Mismo patrón que Productos: `windows_app/ui/pages/camiones.py`, `windows_app/ui/dialogs/camion_dialog.py`, nuevas funciones en `windows_app/ui/api_client.py` (`list_trucks`, `create_truck`, `update_truck`, `list_tags`, `assign_truck_tag`, `delete_tag`). No se tocó el backend: todos los endpoints ya existían. Probado en vivo contra los 111 camiones reales de la base de datos, incluido el reemplazo de una etiqueta vía `curl`.
+- **Pantalla Pallets (app Windows)** (2026-10-07, versión simplificada a pedido del usuario): lista **solo de las etiquetas de pallet** (`GET /api/tags?kind=pallet` — las de camión se administran en Camiones, no aquí), más reciente arriba (ya viene ordenado así del backend), con refresco automático cada 2 s (`QTimer`, preservando la selección) para que una captura nueva desde la APK aparezca sola. Botón **Agregar** (captura manual: EPC + producto, `POST /api/tags/batch`) y **Editar** (corrige el producto, `PUT /api/tags/{epc}`). Sin filtros ni botón de eliminar, a pedido del usuario. `windows_app/ui/pages/pallets.py`, `windows_app/ui/dialogs/pallet_dialog.py`, nuevas funciones en `api_client.py` (`capture_pallet_tag`, `update_tag_product`). Las fechas se convierten de UTC a hora local (`America/Mexico_City`) con `zoneinfo`. No se tocó el backend. Probado en vivo por `curl`: un pallet nuevo aparece de inmediato en el primer lugar de la lista.
+- **Pantalla Boletas de salida (app Windows)** (2026-10-07): alta con **folio automático** (nuevo consecutivo `exit_ticket_folio_seq` → `BOL-000123`, mismo patrón que el folio de pallets), cliente en texto libre (confirmado: no hay tabla de clientes en esta demo), líneas de producto + cantidad de pallets editables en una tabla embebida dentro del diálogo (botones "+ Línea" / quitar línea por fila), y camión limitado a los **`disponibles`** (una vez asignado no se puede quitar, solo reasignar a otro disponible — la API no soporta desasignar). Botones **Agregar**, **Editar** y **Cancelar boleta** (con confirmación), habilitados solo si la boleta está `active`. `windows_app/ui/pages/boletas.py`, `windows_app/ui/dialogs/boleta_dialog.py`, nuevas funciones en `api_client.py` (`list_exit_tickets`, `create_exit_ticket`, `update_exit_ticket`, `assign_exit_ticket_truck`, `cancel_exit_ticket`). Probado en vivo por `curl`: folio generado correctamente, asignar camión, cancelar y verificar que ya no se puede editar.
+
+### Cambiado
+
+- **`POST /api/exit-tickets` ya no recibe `folio`**: lo genera el propio servidor con el nuevo consecutivo `exit_ticket_folio_seq` (`windows_app/api.py`, `windows_app/schema.sql`), igual que ya pasaba con el folio de los pallets. Documentado en `docs/api.md` y `docs/modelo_datos.md`.
+
+### Documentación
+
+- `ROADMAP.md`: revisados los "Pendientes por confirmar" y la Fase 2; marcados como resueltos el diseño de las pantallas de la APK (mockups aprobados antes de programar), la definición de camiones (110 reales cargados) y el supuesto de autorización con motivo/nombre sin contraseña (confirmado al construirse en `AutorizarActivity`). Quedan pendientes solo las partes de Windows (diseño de pantallas y boletas de ejemplo).
+- `docs/lectora.md` y `ROADMAP.md`: leída la etiqueta física de la lectora (foto del usuario, 2026-10-07) — banda **902–928 MHz** (FCC ID `UB4CS108C1GEN2`, IC ID `8073A-CS1082CA`, región EE. UU./Canadá, compatible con México), antena de polarización circular, S/N `VPD21C2MP5519`. **Fase 0 (Hardware) queda completa**; se quitó el riesgo correspondiente de la tabla de riesgos.
+
+### Eliminado
+
+- **Captura de Tags, modo Camión, fuera de alcance de la APK de pruebas** (decisión del usuario, 2026-10-07): se quita de `docs/funcional.md` y `ROADMAP.md` el flujo planeado de "elegir camión → leer parabrisas → asociar etiqueta" desde la APK. Los camiones de la demo ya llegan con su etiqueta de parabrisas asociada por carga directa a la base de datos (`windows_app/import_trucks.py`), así que no hace falta esa pantalla. El endpoint `POST /api/tags/truck` (ya existente en `windows_app/api.py` y documentado en `docs/api.md`) se deja tal cual, para uso futuro desde Windows si hace falta corregir una asociación a mano.
+
 ## [0.15.0] - 2026-10-06
 
 ### Añadido

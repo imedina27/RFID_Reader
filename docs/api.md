@@ -29,6 +29,7 @@ Todos los EPC se normalizan (mayúsculas, sin espacios) en la APK y en la API.
 | POST | `/tags/truck` | Asociar la etiqueta de parabrisas `{ "truck_id": 2, "epc": "..." }` |
 | PUT | `/tags/{epc}` | Corregir (cambiar producto) |
 | DELETE | `/tags/{epc}` | Eliminar |
+| POST | `/tags/reset-delivered` | **Solo demo** ("Limpiar Estado", Windows): regresa a `captured` los pallets cuya salida más reciente ya está entregada (`completed`/`completed_with_difference` + `delivered_at`), para reutilizar las mismas etiquetas físicas en otro ensayo. No toca los que siguen en ruta o no han salido |
 
 Ejemplo de `GET /tags/{epc}` (pallet):
 
@@ -68,7 +69,7 @@ Respuesta de `POST /tags/batch`: un resultado por EPC (los creados incluyen su f
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | GET | `/exit-tickets?status=&truck_id=` | Listar boletas con sus líneas |
-| POST | `/exit-tickets` | Crear `{ "folio": "...", "customer": "...", "truck_id": 2, "lines": [{ "product_id": 3, "pallets": 4 }] }` |
+| POST | `/exit-tickets` | Crear `{ "customer": "...", "truck_id": 2, "lines": [{ "product_id": 3, "pallets": 4 }] }` — el `folio` lo genera el sistema (`BOL-000123`, igual que el de los pallets) |
 | PUT | `/exit-tickets/{id}` | Editar (solo si está `active`) |
 | POST | `/exit-tickets/{id}/assign-truck` | Asignar o cambiar camión `{ "truck_id": 2 }` |
 | POST | `/exit-tickets/{id}/cancel` | Cancelar |
@@ -85,6 +86,7 @@ Respuesta de `POST /tags/batch`: un resultado por EPC (los creados incluyen su f
 | POST | `/dispatches/{id}/finish` | **Finalizar lectura**: si cuadra, cierra la salida; si no, genera alarmas y devuelve las diferencias |
 | POST | `/dispatches/{id}/authorize` | Autorizar con diferencia `{ "authorized_by": "...", "reason": "..." }` |
 | POST | `/dispatches/{id}/cancel` | Cancelar la salida |
+| POST | `/dispatches/{id}/deliver` | **"Unidad en planta"** (Windows): solo si está `completed`/`completed_with_difference` y aún no entregada. Marca `delivered_at` y pone el camión `available`. No cambia `status` — ese sigue distinguiendo si salió "Normal" o "Con autorización" |
 
 Respuesta de `POST /dispatches/{id}/reads` y `GET /dispatches/{id}/status`:
 
@@ -126,7 +128,7 @@ Respuesta de `POST /dispatches/{id}/finish`:
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| GET | `/alarms?status=open` | Listar alarmas (abiertas por defecto) |
+| GET | `/alarms?status=open\|ack\|all` | Listar alarmas (`open` por defecto); incluye `truck_unit_number` (el camión de la salida que la generó, vía `dispatch_id`, o vacío si no aplica) |
 | POST | `/alarms/{id}/ack` | Marcar como atendida `{ "acknowledged_by": "..." }` |
 
 ## Códigos de error

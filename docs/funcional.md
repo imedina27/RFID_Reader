@@ -79,17 +79,18 @@ En todos los casos de diferencia la alarma (`faltante` o `excedente`, con el pro
 
 | Paso | Qué hace el usuario | Qué hace el sistema |
 | --- | --- | --- |
-| 1 | Elige **"Captura de Tags"** | Pregunta el tipo: **Pallet (producto)** o **Camión** |
-| 2 (pallet) | Elige el **producto** una sola vez (se queda seleccionado: **modo lote**) | Queda listo para leer |
+| 1 | Elige **"Captura de Tags"** | Queda listo para leer (captura de pallets) |
+| 2 | Elige el **producto** una sola vez (se queda seleccionado: **modo lote**) | Queda listo para leer |
 | 3 | Lee la etiqueta (gatillo) | Muestra las etiquetas nuevas leídas. Las ya capturadas se indican como "ya capturada" y no se duplican |
 | 4 | Presiona **Aceptar / "Guardar N etiquetas como \<producto\>"** | Guarda cada etiqueta asociada al producto con estado `capturada`, le asigna su **folio consecutivo** y registra la **fecha de salida de producción** (fecha y hora actuales) |
 | 5 | Sigue con el siguiente pallet, o cambia de producto | — |
-| 2 (camión) | Elige el camión en la lista | Lee la etiqueta del parabrisas y la asocia a ese camión |
+
+> **Fuera de alcance de la APK de pruebas:** asociar la etiqueta del parabrisas a un camión (captura "modo Camión"). Los camiones de la demo ya llegan con su etiqueta de parabrisas asociada por carga directa a la base de datos (`windows_app/import_trucks.py`), así que la APK no necesita esta pantalla.
 
 ### Salvaguardas
 
 - Si en una sola lectura aparecen **varias etiquetas nuevas** (por ejemplo, 5 a la vez), se pide confirmación antes de asignarlas todas al producto, para evitar capturar etiquetas ajenas por error.
-- Una etiqueta de **camión** solo puede asociarse a un camión, y cada camión tiene **una** etiqueta de parabrisas.
+- Una etiqueta de **camión** solo puede asociarse a un camión, y cada camión tiene **una** etiqueta de parabrisas (esta asociación se carga directo en la base de datos, no desde la APK — ver nota arriba).
 - Una etiqueta ya `despachada` no puede recapturarse; muestra un aviso.
 
 ### Pallets de la línea de producción
@@ -106,13 +107,13 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 
 | Pantalla | Para qué |
 | --- | --- |
-| **Tablero** | Estado de PostgreSQL y de la API, IP/puerto, alarmas abiertas, camiones en ruta, salidas del día |
+| **Tablero** | Estado de PostgreSQL y de la API, IP/puerto, alarmas abiertas, camiones en ruta, salidas del día. **Panel en vivo**: al escanear el parabrisas aparece el camión (ilustración, no a escala con los pallets reales); al confirmar boletas, aparecen en "Boletas asignadas" y empiezan los círculos de pulso sobre el camión mientras se escanea; al terminar la salida se pinta un semáforo (verde correcta, amarillo con autorización, rojo cancelada) y todo se queda fijo 5 s antes de limpiarse |
 | **Productos** | Catálogo (clave, nombre, presentación) |
-| **Camiones** | Alta, edición, etiqueta del parabrisas, estado y botón **"Marcar disponible"** (regreso de ruta) |
-| **Etiquetas / Captura** | Lista de etiquetas con **folio, EPC, producto, fecha de salida de producción y estado**; filtros (tipo, producto, estado, fecha); captura manual; correcciones |
-| **Boletas de salida** | Alta (folio, cliente, líneas producto-pallets), **asignar camión**, cancelar, ver estado |
-| **Salidas a ruta** | Monitor en vivo de la salida en proceso (palomeo) e historial con detalle y autorizaciones |
-| **Alarmas** | Lista (abiertas y atendidas) con aviso visual y sonoro; marcar como atendida |
+| **Camiones** | Alta, edición y etiqueta del parabrisas. Sin botón "Marcar disponible": no hace falta para esta demo (decisión del usuario, 2026-10-07) |
+| **Pallets** | Lista de las etiquetas de pallet ya capturadas (las que salieron de línea de producción), más reciente arriba, con **fecha, EPC, folio, producto y estado**; se refresca sola para que una captura nueva desde la APK aparezca al momento. Botones **Agregar** (captura manual: EPC + producto), **Editar** (corrige el producto) y **"Limpiar Estado"** (morado, separado de los demás, siempre activo — solo para la demo: regresa a `capturada` los pallets de una salida ya **entregada**, para reutilizar las mismas etiquetas físicas en otro ensayo; pide confirmación antes de aplicar). Las etiquetas de camión no aparecen aquí (se administran en Camiones) |
+| **Boletas de salida** | Alta (folio **automático**, cliente en texto libre, líneas producto-pallets), **asignar camión** (solo camiones `disponibles`; una vez asignado no se puede quitar), cancelar (con confirmación), ver estado |
+| **Salidas a ruta** | Historial de salidas (más reciente arriba, se refresca sola), con filtros por Estado, Camión, Cliente y Folio de boleta. Columnas Camión, Folio(s), Cliente(s), **Estado** (No ha salido/En ruta/Entregado/Cancelada) y **Tipo de salida** (Normal/Con autorización). Botón **"Ver detalle"**: palomeo completo (monitor en vivo si sigue en proceso, foto fija si ya terminó). Botón **"Unidad en planta"**: solo si "En ruta"; marca la salida como entregada y libera el camión (`POST /dispatches/{id}/deliver`) |
+| **Alarmas** | Lista (filtro Abiertas/Atendidas/Todas, más reciente arriba, se refresca sola) con **fecha, tipo, camión, mensaje, atendida por y estado**. Aviso visual (fila resaltada en amarillo/rojo si está abierta) y sonoro (beep al detectar una alarma nueva). Botón **Marcar atendida** (pide el nombre de quien atiende). Solo cubre los 4 tipos que se guardan en la base (`faltante`, `excedente`, `etiqueta no registrada`, `pallet ya despachado`); "camión sin boletas activas" y "camión no disponible" se quedan como avisos solo de la APK, sin guardarse (decisión del usuario, 2026-10-07) |
 
 ### APK Android
 
@@ -121,7 +122,7 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 | **Menú principal** | "Salida a Ruta", "Captura de Tags", "Ajustes" y estado de la lectora |
 | **Conexión con la lectora** | Buscar y conectar la CS108 por Bluetooth |
 | **Salida a Ruta** | Esperando parabrisas → selección de boletas → escaneo y palomeo → resultado (correcta / alarma con Repetir o Autorizar) |
-| **Captura de Tags** | Tipo (pallet o camión) → producto (modo lote) → lectura y confirmación |
+| **Captura de Tags** | Producto (modo lote) → lectura y confirmación |
 | **Ajustes** | IP y puerto del servidor, potencia de la antena, modo simulado |
 
 ## 7. Datos mínimos de la demo
@@ -140,14 +141,13 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 - Cada pallet lleva una etiqueta nueva de un solo uso.
 - Un pallet contiene un solo producto.
 - Un solo operador y una sola lectora a la vez.
-- "Marcar disponible" se hace manualmente en Windows cuando el camión regresa.
 - La autorización con motivo se hace en la propia APK (texto con motivo y nombre); no se exige contraseña de supervisor en la demo.
 
 ### Confirmado
 
 - Productos de la demo (sección 7).
 - Pallet: folio generado por el sistema, producto y fecha de salida de producción (= primera captura).
-- Boleta: folio, cliente y líneas (producto + pallets); el sistema añade fecha de creación y camión asignado. Sin campos extra.
+- Boleta: folio **generado por el sistema** (consecutivo `BOL-000123`, igual que el de los pallets), cliente (texto libre, sin catálogo de clientes) y líneas (producto + pallets); el sistema añade fecha de creación y camión asignado. Sin campos extra.
 
 ### Pendientes
 

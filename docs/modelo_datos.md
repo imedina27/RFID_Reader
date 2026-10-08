@@ -94,11 +94,19 @@ ON CONFLICT (code) DO NOTHING;
 
 ## Boletas de salida
 
+El folio (`BOL-000123`) se genera igual que el de los pallets: en la propia
+sentencia de alta, con su propio consecutivo (`exit_ticket_folio_seq`). El
+cliente no tiene catálogo propio: es un campo de texto libre en `customer`
+(no hay tabla de clientes en esta demo).
+
 ```sql
+-- consecutivo para el folio de las boletas de salida
+CREATE SEQUENCE IF NOT EXISTS exit_ticket_folio_seq;
+
 CREATE TABLE IF NOT EXISTS exit_tickets (
     id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    folio         TEXT NOT NULL UNIQUE,
-    customer      TEXT NOT NULL,
+    folio         TEXT NOT NULL UNIQUE,              -- generado al crear (BOL-000123)
+    customer      TEXT NOT NULL,                     -- texto libre, sin catálogo de clientes
     truck_id      BIGINT REFERENCES trucks(id),      -- asignado desde Windows
     status        TEXT NOT NULL DEFAULT 'active'
                   CHECK (status IN ('active', 'dispatched', 'cancelled')),
@@ -116,6 +124,19 @@ CREATE TABLE IF NOT EXISTS exit_ticket_lines (
 
 ## Salidas a ruta
 
+`status` guarda **cómo salió** (si acaba cuadrando o se autorizó con diferencia) y
+no cambia después. `delivered_at` guarda **si ya regresó a planta** ("Unidad en
+planta", pantalla Windows) y es independiente: así no se pierde el "tipo de
+salida" al entregarse. La pantalla de Windows combina ambos campos para mostrar
+dos columnas separadas:
+
+| Estado (en qué parte del proceso va) | Tipo de salida (cómo salió) |
+| --- | --- |
+| `status = in_progress` → "No ha salido" | — |
+| `status` completed* y `delivered_at` nulo → "En ruta" | `completed` → "Normal"; `completed_with_difference` → "Con autorización" |
+| `status` completed* y `delivered_at` no nulo → "Entregado" | igual que arriba |
+| `status = cancelled` → "Cancelada" | — |
+
 ```sql
 CREATE TABLE IF NOT EXISTS dispatches (
     id                   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -126,7 +147,8 @@ CREATE TABLE IF NOT EXISTS dispatches (
     started_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
     finished_at          TIMESTAMPTZ,
     authorized_by        TEXT,                        -- solo si fue con diferencia
-    authorization_reason TEXT
+    authorization_reason TEXT,
+    delivered_at         TIMESTAMPTZ                   -- "Unidad en planta"; no toca 'status'
 );
 
 -- un camión, una sola salida en proceso

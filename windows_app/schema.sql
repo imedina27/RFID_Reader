@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS trucks (
 -- consecutivo para el folio de los pallets
 CREATE SEQUENCE IF NOT EXISTS pallet_folio_seq;
 
+-- consecutivo para el folio de las boletas de salida
+CREATE SEQUENCE IF NOT EXISTS exit_ticket_folio_seq;
+
 CREATE TABLE IF NOT EXISTS tags (
     epc          VARCHAR(48) PRIMARY KEY,
     kind         TEXT NOT NULL CHECK (kind IN ('pallet', 'truck')),
@@ -69,8 +72,13 @@ CREATE TABLE IF NOT EXISTS dispatches (
     started_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
     finished_at          TIMESTAMPTZ,
     authorized_by        TEXT,
-    authorization_reason TEXT
+    authorization_reason TEXT,
+    delivered_at         TIMESTAMPTZ  -- "Unidad en planta": no cambia 'status', solo marca el regreso
 );
+
+-- migración: la base ya existe con la tabla creada antes de agregar esta
+-- columna, así que CREATE TABLE IF NOT EXISTS no la añadiría por sí solo.
+ALTER TABLE dispatches ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
 
 CREATE UNIQUE INDEX IF NOT EXISTS one_open_dispatch_per_truck
     ON dispatches (truck_id) WHERE status = 'in_progress';

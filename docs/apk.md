@@ -93,7 +93,7 @@ Esto ya está aplicado en `android_app/app/src/main/AndroidManifest.xml`.
 
 ## 6. Flujo de la APK
 
-> **Estado actual (2026-10-06):** Salida a Ruta y Captura de Tags (modo pallet) ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). Falta Captura de Tags modo Camión y el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
+> **Estado actual (2026-10-06):** Salida a Ruta y Captura de Tags ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). Falta el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
 
 ```text
 Inicio (común):
@@ -125,7 +125,7 @@ Modo SALIDA A RUTA (SalidaRutaActivity → BoletasActivity → PalomeoActivity �
      leyendo); "Autorizar salida" pide motivo + nombre →
      POST /api/dispatches/{id}/authorize
 
-Modo CAPTURA DE TAGS (CapturaTagsActivity) -- solo modo Pallet por ahora:
+Modo CAPTURA DE TAGS (CapturaTagsActivity) -- captura de pallets:
 1. Lee una etiqueta (se detiene el inventario en el primer tag nuevo)
 2. Aparece el EPC y, debajo, el combo de productos (GET /api/products)
 3. Aceptar → POST /api/tags/batch con un solo EPC; segun la respuesta:
@@ -135,8 +135,10 @@ Modo CAPTURA DE TAGS (CapturaTagsActivity) -- solo modo Pallet por ahora:
      camion, ya despachada) → ventana de advertencia, Aceptar limpia todo
 4. Cancelar → limpia EPC y producto, foco en el campo
 
-Pendiente: Captura de Tags modo Camión (elegir camion → leer parabrisas →
-POST /api/tags/truck) y SimulatedSource (modo sin hardware).
+Pendiente: SimulatedSource (modo sin hardware). La etiqueta de camion
+(parabrisas) no se captura desde la APK de pruebas: los camiones ya
+llegan con su etiqueta asociada por carga directa en la base de datos
+(`windows_app/import_trucks.py`).
 ```
 
 > Contrato completo de endpoints en `docs/api.md`.
@@ -188,3 +190,4 @@ La APK debe incluir un botón que simule la lectura de un EPC (por ejemplo, uno 
 - [x] **Captura de Tags, modo Pallet, construida y probada con hardware real contra la API real** (2026-10-06): lectura de un EPC a la vez (se corta el inventario en el primer tag nuevo, a diferencia de Salida a Ruta), selector de producto, `POST /api/tags/batch`; ventana de advertencia si la etiqueta ya existe (capturada, de otro producto, de camión o ya despachada) y aviso de 3 s si se guarda — decisiones del usuario, simplifican el "modo lote" original de `docs/funcional.md` a un flujo de una etiqueta a la vez con el producto fijo entre lecturas.
 - [x] **Filtro de un solo EPC por mayor RSSI (parabrisas)**: en Salida a Ruta se acumula el RSSI más alto visto por EPC mientras el gatillo está presionado y, al soltar, se usa el EPC ganador — resuelve el pendiente de leer de más con etiquetas de camiones vecinos cerca.
 - [x] **Salida a Ruta construida completa y probada con hardware real contra la API real** (2026-10-06): las 4 pantallas (`SalidaRutaActivity`, `BoletasActivity`, `PalomeoActivity`, `AutorizarActivity`), incluida la lógica de diferencia (ver `docs/funcional.md`). Probado de punta a punta: salida correcta, salida cancelada por faltante (al segundo intento) y por sobrante (al primero), y camión sin boletas activas.
+- [x] **Ícono de la app con el isotipo de Quantum Labs** (2026-10-07): se reemplazó el ícono genérico de Android. Ver `ROADMAP.md` Fase 6 y `CHANGELOG.md` para el detalle de los archivos.
