@@ -19,6 +19,7 @@ from ui.pages.boletas import BoletasPage
 from ui.pages.camiones import CamionesPage
 from ui.pages.pallets import PalletsPage
 from ui.pages.placeholder import PlaceholderPage
+from ui.pages.prefijos import PrefijosPage
 from ui.pages.productos import ProductosPage
 from ui.pages.salidas import SalidasPage
 from ui.pages.tablero import TableroPage
@@ -37,6 +38,7 @@ NAV_ITEMS = [
     "Boletas de salida",
     "Salidas a ruta",
     "Alarmas",
+    "Prefijos",
 ]
 
 
@@ -143,6 +145,7 @@ class MainWindow(QMainWindow):
             "Boletas de salida": BoletasPage,
             "Salidas a ruta": SalidasPage,
             "Alarmas": AlarmasPage,
+            "Prefijos": PrefijosPage,
         }
         for item in NAV_ITEMS:
             page = paginas_listas[item]() if item in paginas_listas else PlaceholderPage(item)

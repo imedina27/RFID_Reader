@@ -64,16 +64,18 @@ En todos los casos de diferencia la alarma (`faltante` o `excedente`, con el pro
 | --- | --- | --- |
 | Se leyó menos de un producto que lo pedido | `faltante` | Sí |
 | Se leyó más de un producto que lo pedido, o un producto que no está en las boletas | `excedente` | Sí |
-| Etiqueta leída que no está registrada | `etiqueta no registrada` | Sí |
-| Etiqueta de un pallet ya `despachada` | `pallet ya despachado` | Sí |
+| Etiqueta leída que no está registrada, y el producto esperado está completo | `etiqueta no registrada` | **No** (decisión del usuario, 2026-10-07): cierra correcta, la alarma queda igual registrada para revisión |
+| Etiqueta de un pallet ya `despachada` de más, y el producto esperado está completo | `pallet ya despachado` | **No**: cierra correcta con un aviso aparte ("se detectó una etiqueta ya despachada — revisar", posible reetiquetado); la alarma queda registrada para revisión |
 | El camión no tiene boletas activas | `camión sin boletas activas` | Sí (no se puede abrir; aviso: "Esta unidad no tiene boletas asignadas.") |
 | El camión ya está `en ruta` | `camión no disponible` | Sí (no se puede abrir) |
 | Se leen etiquetas de otro camión durante el escaneo de pallets | — | No: se ignoran y solo se registran en el historial |
+| Etiqueta leída con un prefijo que no está en la lista blanca (pantalla **Prefijos**) | — | No aplica: se ignora por completo, ni cuenta ni genera alarma (se asume ajena al proyecto) |
 
-- "Bloquea" significa que no se cierra como correcta; se resuelve **aceptando** (la unidad regresa a la zona de carga, salida cancelada) o con **autorización de salida**.
+- "Bloquea" significa que no se cierra como correcta; se resuelve **aceptando** (la unidad regresa a la zona de carga, salida cancelada) o con **autorización de salida**. Esto ya **solo pasa por faltante o excedente real** de producto — una etiqueta no registrada o ya despachada, por sí sola, nunca bloquea si el producto esperado por boleta ya está completo.
 - Con varias boletas, la verificación es por **totales por producto**. Como la etiqueta se asocia al producto, no se sabe qué pallet corresponde a qué cliente; es una limitación aceptada en la demo.
-- Las alarmas de etiquetas (no registrada, ya despachada) se avisan en cuanto se leen; faltante y excedente se confirman al finalizar (el excedente también se resalta en vivo en el palomeo).
+- Las alarmas de etiquetas (no registrada, ya despachada) se avisan en cuanto se leen; faltante y excedente se confirman al finalizar (el excedente también se resalta en vivo en el palomeo). Una etiqueta no registrada o ya despachada **nunca cuenta** como producto leído, bloquee o no.
 - Una misma alarma no se repite por cada lectura: se registra una vez por salida y por etiqueta/producto.
+- **Lista blanca de prefijos de EPC** (pantalla Prefijos, Windows): una etiqueta que no empiece con ninguno de los prefijos cargados (por ejemplo `E28011`, el de las etiquetas Beontag de la demo) se ignora por completo — ni se captura, ni se cuenta, ni genera alarma — tanto en Captura de Tags como en Salida a Ruta. Se agregan/eliminan prefijos libremente desde esa pantalla.
 
 ## 5. Procedimiento B — Captura de tags (APK)
 
@@ -107,13 +109,14 @@ La app Windows muestra lo capturado desde la APK casi en tiempo real y permite *
 
 | Pantalla | Para qué |
 | --- | --- |
-| **Tablero** | Estado de PostgreSQL y de la API, IP/puerto, alarmas abiertas, camiones en ruta, salidas del día. **Panel en vivo**: al escanear el parabrisas aparece el camión (ilustración, no a escala con los pallets reales); al confirmar boletas, aparecen en "Boletas asignadas" y empiezan los círculos de pulso sobre el camión mientras se escanea; al terminar la salida se pinta un semáforo (verde correcta, amarillo con autorización, rojo cancelada) y todo se queda fijo 5 s antes de limpiarse |
+| **Tablero** | Estado de PostgreSQL y de la API, IP/puerto, alarmas abiertas, camiones en ruta, salidas del día. **Panel en vivo**: al escanear el parabrisas el camión entra (animación de izquierda a derecha); al confirmar boletas, aparecen en "Boletas asignadas" y empiezan los círculos de pulso sobre el camión mientras se escanea; al terminar la salida se pinta un semáforo (verde correcta, amarillo con autorización, rojo cancelada) y todo se queda fijo 5 s antes de limpiarse. El camión siempre **sale de frente, hacia la derecha** (el mismo sentido con el que entró, nunca en reversa), sin importar el motivo de la salida (terminó, no tenía boletas, o se agotó la espera) |
 | **Productos** | Catálogo (clave, nombre, presentación) |
 | **Camiones** | Alta, edición y etiqueta del parabrisas. Sin botón "Marcar disponible": no hace falta para esta demo (decisión del usuario, 2026-10-07) |
 | **Pallets** | Lista de las etiquetas de pallet ya capturadas (las que salieron de línea de producción), más reciente arriba, con **fecha, EPC, folio, producto y estado**; se refresca sola para que una captura nueva desde la APK aparezca al momento. Botones **Agregar** (captura manual: EPC + producto), **Editar** (corrige el producto) y **"Limpiar Estado"** (morado, separado de los demás, siempre activo — solo para la demo: regresa a `capturada` los pallets de una salida ya **entregada**, para reutilizar las mismas etiquetas físicas en otro ensayo; pide confirmación antes de aplicar). Las etiquetas de camión no aparecen aquí (se administran en Camiones) |
 | **Boletas de salida** | Alta (folio **automático**, cliente en texto libre, líneas producto-pallets), **asignar camión** (solo camiones `disponibles`; una vez asignado no se puede quitar), cancelar (con confirmación), ver estado |
 | **Salidas a ruta** | Historial de salidas (más reciente arriba, se refresca sola), con filtros por Estado, Camión, Cliente y Folio de boleta. Columnas Camión, Folio(s), Cliente(s), **Estado** (No ha salido/En ruta/Entregado/Cancelada) y **Tipo de salida** (Normal/Con autorización). Botón **"Ver detalle"**: palomeo completo (monitor en vivo si sigue en proceso, foto fija si ya terminó). Botón **"Unidad en planta"**: solo si "En ruta"; marca la salida como entregada y libera el camión (`POST /dispatches/{id}/deliver`) |
 | **Alarmas** | Lista (filtro Abiertas/Atendidas/Todas, más reciente arriba, se refresca sola) con **fecha, tipo, camión, mensaje, atendida por y estado**. Aviso visual (fila resaltada en amarillo/rojo si está abierta) y sonoro (beep al detectar una alarma nueva). Botón **Marcar atendida** (pide el nombre de quien atiende). Solo cubre los 4 tipos que se guardan en la base (`faltante`, `excedente`, `etiqueta no registrada`, `pallet ya despachado`); "camión sin boletas activas" y "camión no disponible" se quedan como avisos solo de la APK, sin guardarse (decisión del usuario, 2026-10-07) |
+| **Prefijos** | Lista blanca de prefijos de EPC (ej. `E28011`). Botones **Agregar** y **Eliminar** — no hace falta editar, se corrige borrando y agregando de nuevo. Una etiqueta leída que no empiece con ninguno de los prefijos cargados se ignora por completo, tanto en Captura de Tags como en Salida a Ruta (decisión del usuario, 2026-10-07) |
 
 ### APK Android
 

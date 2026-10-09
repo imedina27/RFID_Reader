@@ -226,7 +226,12 @@ class PalomeoActivity : AppCompatActivity() {
                 }
                 val respuesta = JSONObject(cuerpo)
                 if (respuesta.optString("result") == "ok") {
-                    mostrarSalidaCorrecta()
+                    val yaDespachadas = respuesta.optJSONArray("ya_despachadas") ?: org.json.JSONArray()
+                    if (yaDespachadas.length() > 0) {
+                        mostrarSalidaCorrectaConObservacion()
+                    } else {
+                        mostrarSalidaCorrecta()
+                    }
                 } else {
                     mostrarDialogoDiferencia(respuesta.optJSONArray("alarms") ?: org.json.JSONArray())
                 }
@@ -239,6 +244,18 @@ class PalomeoActivity : AppCompatActivity() {
             .setTitle(R.string.salida_correcta_titulo)
             .setMessage("El camión $unidad ($placa) ya está en ruta.")
             .setPositiveButton(R.string.aceptar) { _, _ -> finish() }
+            .setCancelable(false)
+            .show()
+    }
+
+    /** Cuadra exacto, pero se leyó de mas una etiqueta ya despachada (no
+     * bloquea -- decision del usuario, 2026-10-07 -- pero se avisa para que
+     * alguien lo revise: podria ser un posible reetiquetado). */
+    private fun mostrarSalidaCorrectaConObservacion() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.salida_correcta_titulo)
+            .setMessage(R.string.salida_correcta_con_etiqueta_despachada)
+            .setPositiveButton(R.string.entendido) { _, _ -> finish() }
             .setCancelable(false)
             .show()
     }

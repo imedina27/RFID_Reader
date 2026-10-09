@@ -5,7 +5,12 @@ docs/modelo_datos.md seccion "Calculo de la verificacion"). Se prueba en
 tests/test_verification.py.
 """
 
-BLOCKING_READ_RESULTS = {"unknown", "already_dispatched"}
+# Decision del usuario (2026-10-07): una etiqueta no registrada o ya
+# despachada de mas ya NO bloquea el cierre si el producto esperado por
+# boleta esta completo (ni falta ni sobra) -- solo queda registrada como
+# alarma (ver api.ALARM_READ_RESULTS), para revision posterior. Lo unico
+# que sigue bloqueando es que falte o sobre producto de verdad.
+BLOCKING_READ_RESULTS = set()
 
 
 def product_diffs(expected: dict[int, int], read_counts: dict[int, int]) -> list[dict]:

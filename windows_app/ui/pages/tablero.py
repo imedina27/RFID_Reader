@@ -56,6 +56,7 @@ class TableroPage(QWidget):
         super().__init__(parent)
         self._dispatch_id: int | None = None
         self._terminado_en: float | None = None
+        self._sin_boletas_activo = False
 
         layout = QVBoxLayout(self)
 
@@ -218,16 +219,33 @@ class TableroPage(QWidget):
 
         escaneo = live_state.obtener_escaneo()
         if escaneo is not None:
+            if escaneo.get("sin_boletas"):
+                self._set_texto_unidad(escaneo["truck"])
+                self._mostrar_boletas([])
+                if not self._sin_boletas_activo:
+                    self._sin_boletas_activo = True
+                    self.camion_widget.mostrar_temporalmente(2.0, "Unidad sin boletas")
+                elif self.camion_widget.esta_oculto():
+                    # ya entró, esperó y salió por completo
+                    self._sin_boletas_activo = False
+                    self._set_texto_unidad(None)
+                    live_state.limpiar_escaneo()
+                return
+            self._sin_boletas_activo = False
             self._mostrar_unidad(escaneo["truck"])
             self._mostrar_boletas([])
             return
 
+        self._sin_boletas_activo = False
         self._mostrar_unidad(None)
         self._mostrar_boletas([])
 
-    def _mostrar_unidad(self, truck: dict | None) -> None:
+    def _set_texto_unidad(self, truck: dict | None) -> None:
         self.label_unidad.setText(f"Unidad: {truck['unit_number']}" if truck else "Unidad: —")
         self.label_placa.setText(f"Placa: {truck.get('plate') or '—'}" if truck else "Placa: —")
+
+    def _mostrar_unidad(self, truck: dict | None) -> None:
+        self._set_texto_unidad(truck)
         if truck is not None:
             self.camion_widget.mostrar_camion()
         else:
@@ -241,6 +259,7 @@ class TableroPage(QWidget):
     def _reiniciar_panel(self) -> None:
         self._dispatch_id = None
         self._terminado_en = None
+        self._sin_boletas_activo = False
         self.semaforo.apagar()
         self.camion_widget.detener_escaneo()
         self._mostrar_unidad(None)

@@ -246,6 +246,7 @@ class CapturaTagsActivity : AppCompatActivity() {
         "already_captured", "already_captured_other_product" -> "Etiqueta ya tiene asignado un producto"
         "is_truck_tag" -> "Esta etiqueta es de un camión, no de un pallet."
         "already_dispatched" -> "Esta etiqueta ya fue despachada en una salida a ruta."
+        "invalid_prefix" -> "Esta etiqueta no pertenece a este proyecto (prefijo no válido)."
         else -> "Esta etiqueta ya está registrada en la base de datos."
     }
 }

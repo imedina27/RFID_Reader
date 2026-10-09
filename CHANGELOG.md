@@ -11,6 +11,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 - *(nada por ahora)*
 
+## [0.21.0] - 2026-10-07
+
+### Añadido
+
+- **Lista blanca de prefijos de EPC**: pantalla **Prefijos** nueva en Windows (tabla `epc_prefixes`, `E28011` precargado, botones Agregar/Eliminar). Una etiqueta leída que no empiece con ninguno de los prefijos cargados se ignora por completo — ni cuenta, ni se captura, ni genera alarma — tanto en Captura de Tags como en Salida a Ruta. Nuevos endpoints `GET/POST /api/epc-prefixes`, `DELETE /api/epc-prefixes/{id}`. `windows_app/ui/pages/prefijos.py`.
+- **APK**: nuevo diálogo "Salida correcta, pero se detectó una etiqueta ya despachada — revisar" (botón "Entendido") cuando el producto cuadra exacto pero se leyó de más una etiqueta ya despachada (posible reetiquetado); nuevo mensaje de advertencia en Captura de Tags para `invalid_prefix`.
+
+### Cambiado
+
+- **Se relajó la regla de bloqueo del Finalizar** (hallazgo de una prueba real: una lectura completa y correcta se bloqueaba por 2 etiquetas totalmente ajenas al proyecto y una 5ª etiqueta real nunca capturada). Ahora una etiqueta `unknown` o `already_dispatched` de más **ya no bloquea** el cierre si el producto esperado por boleta está completo — solo falta/sobra producto de verdad sigue bloqueando. Siguen quedando registradas en `alarms` para revisión posterior. `verification.BLOCKING_READ_RESULTS` ahora vacío; nuevo `api.ALARM_READ_RESULTS` para la condición de registrar la alarma (antes compartía la misma constante que el bloqueo). `POST /dispatches/{id}/finish` ahora regresa `ya_despachadas` (EPCs) aunque cierre `completed`, para que la APK pueda avisar aunque no bloquee.
+- `tests/test_verification.py` actualizado a la nueva regla (dos pruebas que esperaban bloqueo ahora esperan que pase, más una prueba nueva que confirma que falta/sobra producto real sigue bloqueando sin importar las etiquetas raras).
+- **Panel en vivo del Tablero**: la salida del camión (cualquiera — termine la salida, se confirme que no tiene boletas, o se agote la espera sin confirmar boletas) ahora siempre sigue de frente, en el mismo sentido con el que entró (hacia la derecha), nunca en reversa. `ocultar_camion()` ya anima la salida en vez de desaparecer de golpe (sigue siendo idempotente: no repite la animación si ya está oculto o saliendo). `windows_app/ui/widgets/camion_vivo.py`.
+
+### Documentación
+
+- `docs/funcional.md` (sección 4, reglas de validación), `docs/modelo_datos.md` (tabla `epc_prefixes` y cálculo de verificación) y `docs/api.md` (endpoints de prefijos, respuesta de `/tags/batch` y `/finish`) actualizados a la nueva regla.
+
 ## [0.20.0] - 2026-10-07
 
 ### Añadido

@@ -118,3 +118,15 @@ def ack_alarm(alarm_id: int, acknowledged_by: str) -> dict:
 
 def deliver_dispatch(dispatch_id: int) -> dict:
     return _handle(requests.post(f"{BASE_URL}/dispatches/{dispatch_id}/deliver", timeout=TIMEOUT))
+
+
+def list_epc_prefixes() -> list[dict]:
+    return _handle(requests.get(f"{BASE_URL}/epc-prefixes", timeout=TIMEOUT))
+
+
+def create_epc_prefix(prefix: str) -> dict:
+    return _handle(requests.post(f"{BASE_URL}/epc-prefixes", json={"prefix": prefix}, timeout=TIMEOUT))
+
+
+def delete_epc_prefix(prefix_id: int) -> None:
+    return _handle(requests.delete(f"{BASE_URL}/epc-prefixes/{prefix_id}", timeout=TIMEOUT))

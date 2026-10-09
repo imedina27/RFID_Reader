@@ -25,7 +25,7 @@ Todos los EPC se normalizan (mayúsculas, sin espacios) en la APK y en la API.
 | --- | --- | --- |
 | GET | `/tags/{epc}` | Consultar una etiqueta: tipo, producto o camión, estado |
 | GET | `/tags?kind=&product_id=&status=` | Listar con filtros |
-| POST | `/tags/batch` | **Captura por lote de pallets** `{ "product_id": 3, "epcs": ["..."] }` |
+| POST | `/tags/batch` | **Captura por lote de pallets** `{ "product_id": 3, "epcs": ["..."] }`. Un EPC con un prefijo que no esté en la lista blanca (`/epc-prefixes`) no se captura: se regresa con `"result": "invalid_prefix"` |
 | POST | `/tags/truck` | Asociar la etiqueta de parabrisas `{ "truck_id": 2, "epc": "..." }` |
 | PUT | `/tags/{epc}` | Corregir (cambiar producto) |
 | DELETE | `/tags/{epc}` | Eliminar |
@@ -57,12 +57,13 @@ Respuesta de `POST /tags/batch`: un resultado por EPC (los creados incluyen su f
     { "epc": "E28011C0A500007042D70200", "result": "already_captured", "product_id": 3 },
     { "epc": "E28011C0A500007042D70201", "result": "already_captured_other_product", "product_id": 5 },
     { "epc": "E28011C0A500007042D70202", "result": "is_truck_tag" },
-    { "epc": "E28011C0A500007042D70203", "result": "already_dispatched", "folio": "PLT-000050", "product_id": 2 }
+    { "epc": "E28011C0A500007042D70203", "result": "already_dispatched", "folio": "PLT-000050", "product_id": 2 },
+    { "epc": "473334353432303333000000", "result": "invalid_prefix" }
   ]
 }
 ```
 
-`already_dispatched` aparece cuando se intenta recapturar una etiqueta de pallet que ya salió en una salida a ruta (docs/funcional.md, salvaguardas de la sección 5: una etiqueta ya despachada no puede recapturarse).
+`already_dispatched` aparece cuando se intenta recapturar una etiqueta de pallet que ya salió en una salida a ruta (docs/funcional.md, salvaguardas de la sección 5: una etiqueta ya despachada no puede recapturarse). `invalid_prefix` aparece cuando el EPC no empieza con ninguno de los prefijos de la lista blanca — se asume ajeno al proyecto y no se guarda.
 
 ## Boletas de salida (principalmente Windows)
 
@@ -80,10 +81,10 @@ Respuesta de `POST /tags/batch`: un resultado por EPC (los creados incluyen su f
 | --- | --- | --- |
 | GET | `/dispatch/lookup/{truck_epc}` | Dado el EPC del parabrisas, devuelve el camión, su estado y sus **boletas activas** con líneas. Si hay un problema, devuelve la alarma (`no_active_tickets`, `truck_not_available`) |
 | POST | `/dispatches` | Abrir salida `{ "truck_epc": "...", "ticket_ids": [11, 12] }` → devuelve `dispatch_id` y lo **esperado** por producto |
-| POST | `/dispatches/{id}/reads` | Enviar un lote de EPC leídos `{ "epcs": ["...", "..."] }` → devuelve el **palomeo** actualizado |
+| POST | `/dispatches/{id}/reads` | Enviar un lote de EPC leídos `{ "epcs": ["...", "..."] }` → devuelve el **palomeo** actualizado. Un EPC con un prefijo fuera de la lista blanca se ignora por completo (ni se guarda, ni cuenta, ni genera alarma) |
 | GET | `/dispatches/{id}/status` | Palomeo actual: esperado, leído y diferencia por producto, más etiquetas problemáticas |
 | POST | `/dispatches/{id}/reset` | Reiniciar las lecturas de la salida |
-| POST | `/dispatches/{id}/finish` | **Finalizar lectura**: si cuadra, cierra la salida; si no, genera alarmas y devuelve las diferencias |
+| POST | `/dispatches/{id}/finish` | **Finalizar lectura**: si el producto esperado está completo cierra la salida (sin importar si hubo etiquetas `unknown`/`already_dispatched` de más — decisión del usuario, 2026-10-07); si falta o sobra producto de verdad, genera alarmas y devuelve las diferencias |
 | POST | `/dispatches/{id}/authorize` | Autorizar con diferencia `{ "authorized_by": "...", "reason": "..." }` |
 | POST | `/dispatches/{id}/cancel` | Cancelar la salida |
 | POST | `/dispatches/{id}/deliver` | **"Unidad en planta"** (Windows): solo si está `completed`/`completed_with_difference` y aún no entregada. Marca `delivered_at` y pone el camión `available`. No cambia `status` — ese sigue distinguiendo si salió "Normal" o "Con autorización" |
@@ -110,8 +111,10 @@ Respuesta de `POST /dispatches/{id}/reads` y `GET /dispatches/{id}/status`:
 Respuesta de `POST /dispatches/{id}/finish`:
 
 ```json
-{ "result": "ok", "dispatch_status": "completed" }
+{ "result": "ok", "dispatch_status": "completed", "ya_despachadas": [] }
 ```
+
+`ya_despachadas` trae los EPC de las etiquetas `already_dispatched` que se leyeron de más (puede venir vacío). Aunque la salida cierre correcta, si no viene vacío la APK avisa aparte ("se detectó una etiqueta ya despachada — revisar": posible reetiquetado, queda igual registrada en `alarms`).
 
 ```json
 {
@@ -130,6 +133,19 @@ Respuesta de `POST /dispatches/{id}/finish`:
 | --- | --- | --- |
 | GET | `/alarms?status=open\|ack\|all` | Listar alarmas (`open` por defecto); incluye `truck_unit_number` (el camión de la salida que la generó, vía `dispatch_id`, o vacío si no aplica) |
 | POST | `/alarms/{id}/ack` | Marcar como atendida `{ "acknowledged_by": "..." }` |
+
+## Lista blanca de prefijos de EPC (Windows)
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/epc-prefixes` | Listar prefijos cargados |
+| POST | `/epc-prefixes` | Agregar `{ "prefix": "E28011" }` |
+| DELETE | `/epc-prefixes/{id}` | Eliminar |
+
+Una etiqueta leída (en `/tags/batch` o en `/dispatches/{id}/reads`) que no
+empiece con ninguno de estos prefijos se ignora por completo. Si no hay
+ningún prefijo cargado, no se filtra nada (para no bloquear todo por un
+error de configuración).
 
 ## Códigos de error
 

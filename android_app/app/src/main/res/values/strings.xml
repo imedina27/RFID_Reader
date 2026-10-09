@@ -61,6 +61,8 @@
     <string name="no_se_pudo_finalizar">No se pudo finalizar la salida</string>
     <string name="etiqueta_no_registrada_aviso">Etiqueta no registrada</string>
     <string name="etiqueta_ya_despachada_aviso">Etiqueta ya despachada</string>
+    <string name="salida_correcta_con_etiqueta_despachada">Salida correcta, pero se detectó una etiqueta ya despachada — revisar.</string>
+    <string name="entendido">Entendido</string>
 
     <!-- Autorizar con motivo -->
     <string name="motivo_label">Motivo</string>

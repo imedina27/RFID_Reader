@@ -38,14 +38,26 @@ def test_is_exact_match_false_on_excess():
     assert is_exact_match({1: 4}, {1: 5}, []) is False
 
 
-def test_is_exact_match_false_on_unknown_tag_even_if_counts_match():
+def test_is_exact_match_true_on_unknown_tag_if_counts_match():
+    # Decision 2026-10-07: una etiqueta no registrada ya no bloquea si el
+    # producto esperado por boleta esta completo.
     problem_tags = [{"epc": "E2...", "result": "unknown"}]
-    assert is_exact_match({1: 4}, {1: 4}, problem_tags) is False
+    assert is_exact_match({1: 4}, {1: 4}, problem_tags) is True
 
 
-def test_is_exact_match_false_on_already_dispatched_tag():
+def test_is_exact_match_true_on_already_dispatched_tag_if_counts_match():
+    # Decision 2026-10-07: una etiqueta ya despachada de mas tampoco
+    # bloquea si el producto esperado por boleta esta completo (solo
+    # queda registrada como alarma para revision, ver ALARM_READ_RESULTS).
     problem_tags = [{"epc": "E2...", "result": "already_dispatched"}]
-    assert is_exact_match({1: 4}, {1: 4}, problem_tags) is False
+    assert is_exact_match({1: 4}, {1: 4}, problem_tags) is True
+
+
+def test_is_exact_match_still_false_on_missing_even_with_unknown_tag():
+    # Lo que SI sigue bloqueando es que falte o sobre producto de verdad,
+    # sin importar si ademas hubo una etiqueta rara de por medio.
+    problem_tags = [{"epc": "E2...", "result": "unknown"}]
+    assert is_exact_match({1: 4, 2: 2}, {1: 4, 2: 1}, problem_tags) is False
 
 
 def test_is_exact_match_ignores_other_truck_tags():

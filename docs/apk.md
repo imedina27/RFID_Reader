@@ -118,12 +118,18 @@ Modo SALIDA A RUTA (SalidaRutaActivity → BoletasActivity → PalomeoActivity �
    esperado/leido con color (verde completo, amarillo falta, rojo sobra/no
    solicitado); "Reiniciar lecturas" → POST /reset
 5. "Finalizar lectura" → POST /api/dispatches/{id}/finish
-   - Cuadra exacto → dialogo "Salida correcta", cierra hasta el menu
-   - No cuadra → dialogo con dos botones, "Aceptar" y "Autorizar salida"
-     (ver docs/funcional.md "Resultado en caso de diferencia" para cuando
-     Aceptar cancela la salida de una vez vs. cuando solo deja seguir
-     leyendo); "Autorizar salida" pide motivo + nombre →
-     POST /api/dispatches/{id}/authorize
+   - Producto completo (sin importar si hubo etiquetas unknown/already_dispatched
+     de mas, decision del usuario 2026-10-07) → dialogo "Salida correcta",
+     cierra hasta el menu
+   - Producto completo pero con alguna etiqueta already_dispatched de mas
+     ("ya_despachadas" no viene vacio en la respuesta) → dialogo distinto,
+     "Salida correcta, pero se detecto una etiqueta ya despachada --
+     revisar" (boton "Entendido"), cierra igual hasta el menu
+   - Falta o sobra producto de verdad → dialogo con dos botones, "Aceptar"
+     y "Autorizar salida" (ver docs/funcional.md "Resultado en caso de
+     diferencia" para cuando Aceptar cancela la salida de una vez vs.
+     cuando solo deja seguir leyendo); "Autorizar salida" pide motivo +
+     nombre → POST /api/dispatches/{id}/authorize
 
 Modo CAPTURA DE TAGS (CapturaTagsActivity) -- captura de pallets:
 1. Lee una etiqueta (se detiene el inventario en el primer tag nuevo)
@@ -132,7 +138,13 @@ Modo CAPTURA DE TAGS (CapturaTagsActivity) -- captura de pallets:
    - "created" → aviso "Guardado correcto" (3 s) y se limpia el EPC (el
      producto se queda seleccionado para el siguiente pallet)
    - cualquier otro resultado (ya capturada, de otro producto, es de
-     camion, ya despachada) → ventana de advertencia, Aceptar limpia todo
+     camion, ya despachada, prefijo invalido) → ventana de advertencia,
+     Aceptar limpia todo
+
+Lista blanca de prefijos de EPC (GET /api/epc-prefixes, pantalla Prefijos
+en Windows): un EPC que no empiece con ninguno de los prefijos cargados se
+ignora por completo, tanto en Captura de Tags como en Salida a Ruta -- ni
+se guarda, ni cuenta, ni genera alarma (se asume ajeno al proyecto).
 4. Cancelar → limpia EPC y producto, foco en el campo
 
 Pendiente: SimulatedSource (modo sin hardware). La etiqueta de camion

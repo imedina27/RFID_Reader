@@ -198,6 +198,22 @@ CREATE TABLE IF NOT EXISTS reads (
 CREATE INDEX IF NOT EXISTS idx_reads_epc_time ON reads (epc, read_at DESC);
 ```
 
+## Lista blanca de prefijos de EPC
+
+Pantalla "Prefijos" (Windows). Una etiqueta leída que no empiece con ninguno
+de estos prefijos se ignora por completo (ni se captura, ni se cuenta, ni
+genera alarma) — se asume ajena al proyecto. Decisión del usuario,
+2026-10-07.
+
+```sql
+CREATE TABLE IF NOT EXISTS epc_prefixes (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    prefix     TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO epc_prefixes (prefix) VALUES ('E28011') ON CONFLICT (prefix) DO NOTHING;
+```
+
 ## Cálculo de la verificación
 
 ```sql
@@ -215,7 +231,15 @@ WHERE dispatch_id = %s AND result = 'counted'
 GROUP BY product_id;
 ```
 
-La salida es **correcta** si, para todos los productos, `leído = esperado`, y no hay lecturas con resultado `unknown` ni `already_dispatched`. Cualquier otro caso genera alarmas.
+La salida es **correcta** si, para todos los productos, `leído = esperado`
+(contando solo `result = 'counted'`). Una lectura `unknown` o
+`already_dispatched` de más **ya no bloquea** este cálculo (decisión del
+usuario, 2026-10-07) — solo falta o sobra producto de verdad sigue
+generando alarmas que bloquean el cierre; las etiquetas `unknown`/
+`already_dispatched` quedan igual registradas en `alarms` para revisión,
+y si hubo una `already_dispatched` la respuesta de `POST .../finish`
+también la reporta (`ya_despachadas`) para que la APK avise aunque cierre
+correcta.
 
 ## Cierre de una salida correcta (una sola transacción)
 

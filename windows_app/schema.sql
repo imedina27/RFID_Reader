@@ -19,6 +19,18 @@ CREATE TABLE IF NOT EXISTS trucks (
     status_changed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Lista blanca de prefijos de EPC (pantalla "Prefijos", Windows): una
+-- etiqueta leida que no empiece con ninguno de estos prefijos se ignora
+-- por completo (ni cuenta, ni genera alarma, ni se puede capturar) -- se
+-- asume que es ajena al proyecto (otro objeto con RFID cerca de la
+-- lectora). Decision del usuario, 2026-10-07.
+CREATE TABLE IF NOT EXISTS epc_prefixes (
+    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    prefix     TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO epc_prefixes (prefix) VALUES ('E28011') ON CONFLICT (prefix) DO NOTHING;
+
 -- consecutivo para el folio de los pallets
 CREATE SEQUENCE IF NOT EXISTS pallet_folio_seq;
 

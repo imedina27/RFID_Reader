@@ -7,13 +7,26 @@ import live_state
 from errors import ApiError, bad_request, conflict, not_found
 from verification import build_alarms, is_exact_match, product_diffs
 
-BLOCKING_READ_RESULTS = {"unknown", "already_dispatched"}
+# Etiquetas no registrada / ya despachada: ya no bloquean el cierre de la
+# salida (decision del usuario, 2026-10-07; ver verification.BLOCKING_READ_RESULTS),
+# pero siguen quedando registradas en Alarmas para revision.
+ALARM_READ_RESULTS = {"unknown", "already_dispatched"}
 
 
 def normalize_epc(raw: str) -> str:
     if not isinstance(raw, str) or not raw.strip():
         raise bad_request("Se requiere el EPC.", "missing_epc")
     return raw.strip().upper()
+
+
+def tiene_prefijo_valido(conn, epc: str) -> bool:
+    """Lista blanca de prefijos de EPC (pantalla Prefijos): si no hay
+    prefijos cargados, no se filtra nada (evita bloquear todo por error de
+    configuracion)."""
+    prefijos = [row["prefix"] for row in conn.execute("SELECT prefix FROM epc_prefixes").fetchall()]
+    if not prefijos:
+        return True
+    return any(epc.startswith(prefijo) for prefijo in prefijos)
 
 
 def create_app() -> Flask:
@@ -216,6 +229,9 @@ def create_app() -> Flask:
         results = []
         for raw_epc in epcs:
             epc = normalize_epc(raw_epc)
+            if not tiene_prefijo_valido(conn, epc):
+                results.append({"epc": epc, "result": "invalid_prefix"})
+                continue
             existing = conn.execute(
                 "SELECT kind, status, product_id, folio FROM tags WHERE epc = %s", (epc,)
             ).fetchone()
@@ -475,8 +491,8 @@ def create_app() -> Flask:
         truck = conn.execute(
             "SELECT id, unit_number, plate, status FROM trucks WHERE id = %s", (tag["truck_id"],)
         ).fetchone()
-        live_state.marcar_escaneo(truck)  # panel en vivo del Tablero
         if truck["status"] == "en_route":
+            live_state.marcar_escaneo(truck)  # panel en vivo del Tablero
             return jsonify({
                 "truck": truck, "alarm": "truck_not_available",
                 "message": "El camión ya está en ruta.",
@@ -486,10 +502,12 @@ def create_app() -> Flask:
             (truck["id"],),
         ).fetchall()
         if not tickets:
+            live_state.marcar_escaneo(truck, sin_boletas=True)  # panel en vivo: entra, espera, sale
             return jsonify({
                 "truck": truck, "alarm": "no_active_tickets",
                 "message": "Esta unidad no tiene boletas asignadas.",
             })
+        live_state.marcar_escaneo(truck)  # panel en vivo del Tablero
         for ticket in tickets:
             ticket["lines"] = conn.execute(
                 """
@@ -557,6 +575,9 @@ def create_app() -> Flask:
 
         for raw_epc in epcs:
             epc = normalize_epc(raw_epc)
+            if not tiene_prefijo_valido(conn, epc):
+                continue  # ajena al proyecto (ver pantalla Prefijos): se ignora por completo
+
             conn.execute("INSERT INTO reads (epc, source) VALUES (%s, %s)", (epc, f"dispatch:{dispatch_id}"))
 
             tag = conn.execute(
@@ -581,7 +602,7 @@ def create_app() -> Flask:
                 """,
                 (dispatch_id, epc, result, product_id),
             ).fetchone()
-            if inserted is not None and result in BLOCKING_READ_RESULTS:
+            if inserted is not None and result in ALARM_READ_RESULTS:
                 alarm_type = "unknown_tag" if result == "unknown" else "already_dispatched"
                 conn.execute(
                     """
@@ -616,7 +637,11 @@ def create_app() -> Flask:
 
         if is_exact_match(expected, read_counts, problem_tags):
             _close_dispatch(conn, dispatch_id, dispatch["truck_id"], status="completed")
-            return jsonify({"result": "ok", "dispatch_status": "completed"})
+            ya_despachadas = [t["epc"] for t in problem_tags if t["result"] == "already_dispatched"]
+            return jsonify({
+                "result": "ok", "dispatch_status": "completed",
+                "ya_despachadas": ya_despachadas,
+            })
 
         alarms = build_alarms(expected, read_counts, problem_tags)
         alarm_rows = []
@@ -731,6 +756,39 @@ def create_app() -> Flask:
         if row is None:
             raise not_found(f"No existe la alarma {alarm_id}.")
         return jsonify(row)
+
+    # ------------------------------------------------------- prefijos EPC -
+    @app.get("/api/epc-prefixes")
+    def list_epc_prefixes():
+        rows = get_conn().execute(
+            "SELECT id, prefix, created_at FROM epc_prefixes ORDER BY prefix"
+        ).fetchall()
+        return jsonify(rows)
+
+    @app.post("/api/epc-prefixes")
+    def create_epc_prefix():
+        body = request.get_json(force=True) or {}
+        prefix = normalize_epc(body.get("prefix", ""))
+        row = get_conn().execute(
+            """
+            INSERT INTO epc_prefixes (prefix) VALUES (%s)
+            ON CONFLICT (prefix) DO NOTHING
+            RETURNING id, prefix, created_at
+            """,
+            (prefix,),
+        ).fetchone()
+        if row is None:
+            raise conflict(f"Ya existe el prefijo '{prefix}'.", "prefix_exists")
+        return jsonify(row), 201
+
+    @app.delete("/api/epc-prefixes/<int:prefix_id>")
+    def delete_epc_prefix(prefix_id: int):
+        conn = get_conn()
+        row = conn.execute("SELECT id FROM epc_prefixes WHERE id = %s", (prefix_id,)).fetchone()
+        if row is None:
+            raise not_found(f"No existe el prefijo {prefix_id}.")
+        conn.execute("DELETE FROM epc_prefixes WHERE id = %s", (prefix_id,))
+        return "", 204
 
     return app
 

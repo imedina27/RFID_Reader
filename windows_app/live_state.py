@@ -15,10 +15,14 @@ _ultimo_escaneo: dict | None = None
 VIGENCIA_SEGUNDOS = 60
 
 
-def marcar_escaneo(truck: dict) -> None:
+def marcar_escaneo(truck: dict, sin_boletas: bool = False) -> None:
     global _ultimo_escaneo
     with _lock:
-        _ultimo_escaneo = {"truck": truck, "escaneado_en": time.monotonic()}
+        _ultimo_escaneo = {
+            "truck": truck,
+            "sin_boletas": sin_boletas,
+            "escaneado_en": time.monotonic(),
+        }
 
 
 def obtener_escaneo() -> dict | None:
