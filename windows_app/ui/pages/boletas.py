@@ -1,11 +1,14 @@
 """Pantalla Boletas de salida: alta (folio automático, cliente, camión y
 líneas de producto/pallets), edición y cancelación (docs/funcional.md,
-sección 6). Solo se puede editar o cancelar una boleta `active`."""
+sección 6). Solo se puede editar o cancelar una boleta `active`. Se refresca
+sola cada 2 s (mismo patrón que Tablero/Pallets) para que el estado y los
+botones de Editar/Cancelar no se queden desactualizados si la boleta se
+despacha o cancela desde otra pantalla mientras esta sigue abierta."""
 
 from email.utils import parsedate_to_datetime
 from zoneinfo import ZoneInfo
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QHBoxLayout,
@@ -85,17 +88,25 @@ class BoletasPage(QWidget):
         self.tabla.doubleClicked.connect(self._editar)
         layout.addWidget(self.tabla, 1)
 
+        self._timer = QTimer(self)
+        self._timer.setInterval(2000)
+        self._timer.timeout.connect(lambda: self.refrescar(silencioso=True))
+        self._timer.start()
         self.refrescar()
 
     # ----------------------------------------------------------
 
-    def refrescar(self) -> None:
+    def refrescar(self, silencioso: bool = False) -> None:
         try:
             self._boletas = api_client.list_exit_tickets()
             camiones = {t["id"]: t["unit_number"] for t in api_client.list_trucks()}
         except Exception as ex:
-            QMessageBox.warning(self, "No se pudo cargar", str(ex))
+            if not silencioso:
+                QMessageBox.warning(self, "No se pudo cargar", str(ex))
             return
+
+        actual = self._fila_seleccionada()
+        id_seleccionado = actual["id"] if actual is not None else None
 
         self.tabla.setRowCount(len(self._boletas))
         for fila, boleta in enumerate(self._boletas):
@@ -111,6 +122,8 @@ class BoletasPage(QWidget):
                 item = QTableWidgetItem(texto)
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.tabla.setItem(fila, col, item)
+            if boleta["id"] == id_seleccionado:
+                self.tabla.selectRow(fila)
         self._actualizar_botones()
 
     def _fila_seleccionada(self) -> dict | None:

@@ -11,6 +11,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 - *(nada por ahora)*
 
+## [0.21.2] - 2026-10-09
+
+### Corregido
+
+- **Boletas de salida no se refrescaba sola**: era la única pantalla de catálogo sin refresco automático (Tablero y Pallets sí tienen `QTimer` cada 2 s). Si se dejaba abierta mientras una boleta se despachaba o cancelaba desde otra pantalla, seguía mostrando "Activa" con el botón Editar habilitado sobre datos viejos — la API ya rechazaba correctamente cualquier intento real de guardar ("Solo se puede editar una boleta activa"), pero la pantalla engañaba visualmente. Se agregó el mismo patrón de refresco (preservando la selección) en `windows_app/ui/pages/boletas.py`.
+
 ## [0.21.1] - 2026-10-09
 
 ### Corregido
