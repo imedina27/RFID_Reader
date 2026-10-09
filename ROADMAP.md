@@ -1,6 +1,6 @@
 # ROADMAP — Salida a ruta y captura de pallets con RFID (Demo)
 
-> **Estado:** v0.21 — hardware (Fase 0) completo (etiqueta de la lectora leída: 902–928 MHz, compatible con México); entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) **completa** (Tablero, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta, Alarmas y Prefijos funcionando); APK (Fases 6-7) con **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real de `windows_app` (ya no manda al receptor de pruebas): identificación del camión por el EPC de mayor RSSI, selección de boletas, palomeo en vivo, Finalizar con sus dos resultados (correcta / diferencia con "Aceptar" que cancela o deja seguir leyendo según el caso, y "Autorizar salida" con motivo). **Hallazgo de una prueba real**: una lectura completa y correcta se bloqueaba por etiquetas ajenas al proyecto o ya despachadas de más — se agregó una lista blanca de prefijos de EPC y se relajó la regla de bloqueo (ver Fase 7). Pendiente de la APK: `SimulatedSource`.
+> **Estado:** v0.21.1 — hardware (Fase 0) completo (etiqueta de la lectora leída: 902–928 MHz, compatible con México); entorno (Fase 3) y backend (Fase 4) completos; interfaz Windows (Fase 5) **completa** (Tablero, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta, Alarmas y Prefijos funcionando); APK (Fases 6-7) con **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real de `windows_app` (ya no manda al receptor de pruebas): identificación del camión por el EPC de mayor RSSI, selección de boletas, palomeo en vivo, Finalizar con sus dos resultados (correcta / diferencia con "Aceptar" que cancela o deja seguir leyendo según el caso, y "Autorizar salida" con motivo). **Hallazgo de una prueba real**: una lectura completa y correcta se bloqueaba por etiquetas ajenas al proyecto o ya despachadas de más — se agregó una lista blanca de prefijos de EPC y se relajó la regla de bloqueo (ver Fase 7). Pendiente de la APK: `SimulatedSource`. **Corregido (2026-10-09)**: una política WDAC de la empresa bloqueaba `psycopg[binary]`; ahora `db.py` usa la implementación pura Python de `psycopg` (ver Fase 3 y sección 7).
 > **Documentación:** `docs/funcional.md` (qué hace el sistema), `docs/modelo_datos.md`, `docs/api.md`, `docs/lectora.md`, `docs/tag.md`, `docs/apk.md`.
 > **Alcance:** proyecto para presentación/demo. No está pensado para producción (sin HTTPS, sin autenticación robusta, sin alta disponibilidad).
 
@@ -156,7 +156,8 @@ RFID_Reader/
 
 ### Fase 3 — Entorno de desarrollo ✅
 
-- [x] pipenv: `flask`, `psycopg[binary]`, `python-dotenv`, `pyqt6` (confirmado con Python 3.14) y `pytest` (dev).
+- [x] pipenv: `flask`, `psycopg` (implementación pura Python, ver nota abajo), `python-dotenv`, `pyqt6` (confirmado con Python 3.14) y `pytest` (dev).
+- [x] **Cambio (2026-10-09)**: se quitó el extra `psycopg[binary]` — una política WDAC de la empresa bloqueaba su `.pyd` sin firma ("Una directiva de Control de aplicaciones bloqueó este archivo", confirmado en el visor de eventos `Microsoft-Windows-CodeIntegrity/Operational`). `windows_app/db.py` ahora agrega la carpeta `bin` de la instalación local de PostgreSQL al `PATH` del proceso antes de importar `psycopg`, para que use su implementación pura Python contra la `libpq.dll` ya instalada (esa sí pasa la política).
 - [x] PostgreSQL: base `RFID_Reader` creada (PostgreSQL 18.6, puerto 5432, rol existente `qua_admin`).
 - [x] `windows_app/.env` (no versionado) y `windows_app/.env.example`; `.gitignore` en el repo.
 - [x] JDK 17 + `adb` funcionando con el S24 Ultra conectado por USB (depuración USB habilitada; hubo que desactivar el "Bloqueador automático" de Samsung, que la bloqueaba). Falta solo Android Studio como IDE (se puede seguir compilando e instalando por línea de comandos sin ella).
@@ -275,6 +276,7 @@ RFID_Reader/
 | Captura accidental de etiquetas ajenas en modo lote | Confirmación cuando se leen varias etiquetas nuevas a la vez |
 | La API o PostgreSQL no están disponibles al presentar | Verificación al arrancar, aviso claro, probar antes |
 | `psycopg` o la librería de interfaz sin paquete para Python 3.14 | Probar en la Fase 3; si falla, Python 3.13 |
+| **Resuelto (2026-10-09)**: una política WDAC de la empresa bloqueaba el `.pyd` sin firmar de `psycopg[binary]` ("Una directiva de Control de aplicaciones bloqueó este archivo") | Se quitó el extra `binary`; `db.py` usa la implementación pura Python de `psycopg`, que carga la `libpq.dll` ya instalada con PostgreSQL (sí pasa la política) agregándola al `PATH` del proceso antes de importar `psycopg` |
 | Falla Bluetooth o el SDK en la presentación | Modo simulado + video de respaldo |
 | IP cambia o el firewall bloquea | IP visible en el Tablero; regla de firewall probada antes |
 | One UI cierra el Bluetooth en segundo plano | APK en primer plano, pantalla encendida, batería sin restricciones |

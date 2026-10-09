@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 flask = "*"
-psycopg = {extras = ["binary"], version = "*"}
+psycopg = "*"
 python-dotenv = "*"
 pyqt6 = "*"
 openpyxl = "*"

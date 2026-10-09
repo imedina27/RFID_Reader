@@ -11,6 +11,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 - *(nada por ahora)*
 
+## [0.21.1] - 2026-10-09
+
+### Corregido
+
+- **`main.py` no arrancaba** ("Una directiva de Control de aplicaciones bloqueó este archivo"): una política WDAC de la empresa (Quantum Labs) bloquea el `.pyd` sin firma de `psycopg[binary]` (confirmado en el visor de eventos `Microsoft-Windows-CodeIntegrity/Operational`, policy id `{0283ac0f-fff1-49ae-ada1-8a933130cad6}`). Se quitó el extra `binary` del `Pipfile` y `windows_app/db.py` ahora agrega la carpeta `bin` de la instalación local de PostgreSQL al `PATH` del proceso antes de importar `psycopg`, para que use su implementación pura Python contra la `libpq.dll` ya instalada (esa sí pasa la política). Verificado: conexión a PostgreSQL, arranque completo de `main.py` y los 13 `pytest` sin errores.
+
 ## [0.21.0] - 2026-10-07
 
 ### Añadido

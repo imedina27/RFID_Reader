@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.21.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) **completa** (Tablero con panel en vivo del escaneo, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta, Alarmas y Prefijos — lista blanca de EPC); la APK tiene **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real (S24 Ultra + CS108-2), e ícono propio con el isotipo de Quantum Labs. Falta el modo simulado de la APK (ver `docs/apk.md` y `ROADMAP.md`).
+**Versión:** 0.21.1 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) **completa** (Tablero con panel en vivo del escaneo, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta, Alarmas y Prefijos — lista blanca de EPC); la APK tiene **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real (S24 Ultra + CS108-2), e ícono propio con el isotipo de Quantum Labs. Falta el modo simulado de la APK (ver `docs/apk.md` y `ROADMAP.md`).
 
 ## Cómo funciona
 
@@ -76,7 +76,7 @@ RFID_Reader/
 
 ## Puesta en marcha
 
-1. **Entorno Python:** `pipenv install` (ya instala `flask`, `psycopg[binary]`, `python-dotenv`, `pyqt6` y, como dependencia de desarrollo, `pytest`). Probado con Python 3.14.
+1. **Entorno Python:** `pipenv install` (ya instala `flask`, `psycopg`, `python-dotenv`, `pyqt6` y, como dependencia de desarrollo, `pytest`). Probado con Python 3.14. `psycopg` usa su implementación pura Python (sin el extra `binary`) porque en esta máquina una política WDAC de la empresa bloquea su `.pyd` sin firma; `windows_app/db.py` agrega automáticamente la carpeta `bin` de PostgreSQL al `PATH` del proceso para que encuentre `libpq.dll`.
 2. **Base de datos** (PostgreSQL, ya instalado — en esta máquina: 18.6, puerto 5432): crear la base con tu rol existente, por ejemplo
 
    ```sql
