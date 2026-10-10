@@ -79,6 +79,10 @@ class SalidaRutaActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_salida_ruta)
+        // Evita que la pantalla se apague sola mientras se esta leyendo --
+        // si se apaga a medio escaneo, Android pausa la lectura y hay que
+        // volver a empezar (pedido del usuario, 2026-10-09).
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         rfidManager = (application as RfidApplication).rfidManager
         tarjetaConexion = findViewById(R.id.tarjetaConexion)

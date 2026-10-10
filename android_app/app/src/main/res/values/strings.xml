@@ -74,6 +74,19 @@
     <string name="falta_autorizado_por">Escribe el nombre de quien autoriza</string>
     <string name="no_se_pudo_autorizar">No se pudo autorizar</string>
 
+    <!-- Inventario RFID -->
+    <string name="inventario_rfid">Inventario RFID</string>
+    <string name="prefijos_sub">Solo muestra EPCs que empiecen con un prefijo guardado</string>
+    <string name="total_tags_leidos">%d etiquetas leídas</string>
+
+    <!-- Prefijos -->
+    <string name="prefijos">Prefijos</string>
+    <string name="prefijos_nota">Lista guardada en este teléfono, solo la usa Inventario RFID. No se comparte con la laptop.</string>
+    <string name="prefijo_hint">Prefijo de EPC (ej. E28011)</string>
+    <string name="agregar">+ Agregar</string>
+    <string name="prefijo_invalido">Escribe un prefijo (no puede estar vacío ni repetido)</string>
+    <string name="eliminar">Eliminar</string>
+
     <!-- Ajustes -->
     <string name="conexion_laptop">Conexión con la laptop</string>
     <string name="ip_del_servidor">IP del servidor</string>

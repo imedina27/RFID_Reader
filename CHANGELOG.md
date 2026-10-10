@@ -11,6 +11,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 - *(nada por ahora)*
 
+## [0.22.0] - 2026-10-09
+
+### Añadido
+
+- **APK: pantallas "Inventario RFID" y "Prefijos"** (pedido del usuario, diagnóstico puro en el teléfono, sin llamadas a la API ni a PostgreSQL). Menú principal cambiado a cuadrícula 2x2 (`activity_main.xml`).
+  - **Prefijos** (`PrefijosActivity.kt`): lista de prefijos de EPC guardada en el teléfono (`SharedPreferences`, precargada con `E28011`), con Agregar/Eliminar. Es independiente de la lista de prefijos del servidor/Windows (`epc_prefixes`) — mismo nombre, dos listas distintas. No valida longitud, igual que la pantalla equivalente de Windows.
+  - **Inventario RFID** (`InventarioActivity.kt`): lectura continua con el gatillo, EPC + contador de lecturas por etiqueta, pitido (`ToneGenerator`) solo la primera vez que aparece cada EPC, switch "Prefijos" que oculta cualquier EPC que no empiece con un prefijo guardado, y un contador del total de etiquetas únicas leídas debajo del switch. La lista se reinicia al entrar a la pantalla y al cambiar el switch.
+
+### Corregido
+
+- **La pantalla se apagaba sola a medio escaneo** (Captura de Tags, Salida a Ruta, Palomeo e Inventario RFID): el apagado automático por inactividad de Android pausa la lectura (igual que si se saliera de la pantalla) y, al volver a encenderla, Inventario RFID perdía toda la lista acumulada. Se agregó `FLAG_KEEP_SCREEN_ON` a las cuatro pantallas de lectura — solo evita el apagado automático mientras esa pantalla está abierta, no cambia ningún ajuste del sistema ni afecta a otras apps.
+
+### Documentación
+
+- `ROADMAP.md` (encabezado y Fase 7), `README.md` y `docs/apk.md` actualizados con las dos pantallas nuevas, el contador total y el arreglo de pantalla.
+
 ## [0.21.2] - 2026-10-09
 
 ### Corregido

@@ -71,6 +71,18 @@
             android:exported="false"
             android:parentActivityName=".PalomeoActivity" />
 
+        <activity
+            android:name=".InventarioActivity"
+            android:label="@string/inventario_rfid"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".PrefijosActivity"
+            android:label="@string/prefijos"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
     </application>
 
 </manifest>

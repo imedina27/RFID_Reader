@@ -93,14 +93,16 @@ Esto ya está aplicado en `android_app/app/src/main/AndroidManifest.xml`.
 
 ## 6. Flujo de la APK
 
-> **Estado actual (2026-10-06):** Salida a Ruta y Captura de Tags ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). Falta el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
+> **Estado actual (2026-10-06):** Salida a Ruta y Captura de Tags ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). **Inventario RFID y Prefijos** (2026-10-09) son pantallas de diagnóstico nuevas, locales al teléfono, sin probar aún con hardware real. Falta el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
 
 ```text
 Inicio (común):
 1. Pedir permisos (BLE + red)
 2. Escanear BLE → mostrar lectoras CS108 encontradas → conectar
-3. Menú principal: botones "Captura de Tags" y "Salida a Ruta", desactivados
-   hasta que la lectora queda conectada (MainActivity)
+3. Menú principal: cuadrícula 2x2 con "Captura de Tags", "Salida a Ruta",
+   "Inventario RFID" (las tres desactivadas hasta que la lectora queda
+   conectada) y "Prefijos" (siempre disponible, no necesita lectora) --
+   MainActivity
 
 Modo SALIDA A RUTA (SalidaRutaActivity → BoletasActivity → PalomeoActivity → AutorizarActivity):
 1. "Esperando parabrisas": mientras el gatillo esta presionado se escucha sin
@@ -151,7 +153,53 @@ Pendiente: SimulatedSource (modo sin hardware). La etiqueta de camion
 (parabrisas) no se captura desde la APK de pruebas: los camiones ya
 llegan con su etiqueta asociada por carga directa en la base de datos
 (`windows_app/import_trucks.py`).
+
+Modo INVENTARIO RFID (InventarioActivity) -- diagnostico, sin tocar la API
+ni la base de datos (pedido del usuario, 2026-10-09):
+1. Lectura continua mientras el GATILLO esta presionado (igual que Captura
+   de Tags/Salida a Ruta); cada EPC unico se cuenta y se muestra en una
+   lista (EPC + "xN" lecturas); pita (ToneGenerator) solo la primera vez
+   que aparece cada EPC; debajo del switch de Prefijos hay un contador del
+   total de etiquetas unicas leidas
+2. Switch "Prefijos": si esta activo, un EPC que no empiece con ninguno de
+   los prefijos guardados en la pantalla Prefijos (de la APK, ver abajo) se
+   ignora por completo -- no se cuenta, no pita, no aparece en la lista ni
+   en el total
+3. La lista se reinicia cada vez que se entra a la pantalla y cada vez que
+   se cambia el switch (no se mezcla lo leido antes/despues del filtro)
+4. No hay flecha de detalle por tag: se evaluo y se descarto (ver nota
+   abajo)
+
+Pantalla PREFIJOS (PrefijosActivity) -- solo la usa Inventario RFID:
+1. Lista de prefijos de EPC guardada en el propio telefono (SharedPreferences,
+   Preferencias.kt), precargada con "E28011"
+2. Agregar (normaliza a mayusculas) y Eliminar; sin validar longitud (el
+   usuario decide que tan largo es cada prefijo, igual que en Windows)
+3. Es independiente de la lista de prefijos del servidor/Windows
+   (GET/POST /api/epc-prefixes, tabla epc_prefixes) -- mismo nombre, dos
+   listas distintas sin relacion entre si; esta nunca sale del telefono
+
+Nota sobre el detalle del tag: se penso en una flecha ">" para ver "mas
+informacion guardada en el tag" (por ejemplo datos de pallet que grabe el
+proveedor), pero se descarto antes de programar. El SDK, en la ruta real de
+inventario (RfidInventoryManager.processTagData), solo llena EPC, RSSI,
+conteo y canal -- nunca TID ni memoria de usuario, aunque el modelo RfidTag
+declare esos campos. Leerlos de verdad requeriria usar la capa de mas bajo
+nivel del SDK vendorizado (cslibrary4a, comando TYPE_18K6C_TAG_ACCESS), sin
+wrapper ni ejemplo existente en el proyecto -- se dejo fuera de esta pantalla
+por riesgo y alcance.
 ```
+
+**Pantalla sin apagarse durante la lectura** (hallazgo real del usuario,
+2026-10-09): el apagado automático de la pantalla por inactividad de
+Android pausa la lectura igual que si se saliera de la pantalla (y en
+Inventario RFID, al volver a encenderla, se perdía toda la lista
+acumulada). Las cuatro pantallas de lectura (`CapturaTagsActivity`,
+`SalidaRutaActivity`, `PalomeoActivity`, `InventarioActivity`) agregan
+`window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)` en su
+`onCreate` -- evita el apagado automático solo mientras esa pantalla esta
+en primer plano; no cambia ningun ajuste del sistema ni afecta a otras
+apps, y el usuario sigue pudiendo apagar la pantalla manualmente.
 
 > Contrato completo de endpoints en `docs/api.md`.
 

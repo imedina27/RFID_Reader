@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var chipConteo: TextView
     private lateinit var btnCapturaTags: Button
     private lateinit var btnSalidaRuta: Button
+    private lateinit var btnInventario: Button
     private lateinit var adapter: LecturasAdapter
     private val lecturas = mutableListOf<Lectura>()
     private val formatoHora = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
@@ -110,6 +111,7 @@ class MainActivity : AppCompatActivity() {
         chipConteo = findViewById(R.id.chipConteo)
         btnCapturaTags = findViewById(R.id.btnCapturaTags)
         btnSalidaRuta = findViewById(R.id.btnSalidaRuta)
+        btnInventario = findViewById(R.id.btnInventario)
 
         adapter = LecturasAdapter(lecturas)
         findViewById<RecyclerView>(R.id.lvLecturas).apply {
@@ -127,6 +129,12 @@ class MainActivity : AppCompatActivity() {
         }
         btnSalidaRuta.setOnClickListener {
             startActivity(Intent(this, SalidaRutaActivity::class.java))
+        }
+        btnInventario.setOnClickListener {
+            startActivity(Intent(this, InventarioActivity::class.java))
+        }
+        findViewById<Button>(R.id.btnPrefijos).setOnClickListener {
+            startActivity(Intent(this, PrefijosActivity::class.java))
         }
     }
 
@@ -199,6 +207,7 @@ class MainActivity : AppCompatActivity() {
                     actualizarChipConexion(conectado = true)
                     btnCapturaTags.isEnabled = true
                     btnSalidaRuta.isEnabled = true
+                    btnInventario.isEnabled = true
                     epcsVistos.clear()
                     ultimaActualizacionVisto.clear()
                     aplicarPotencia()
@@ -227,6 +236,7 @@ class MainActivity : AppCompatActivity() {
                     actualizarChipConexion(conectado = false)
                     btnCapturaTags.isEnabled = false
                     btnSalidaRuta.isEnabled = false
+                    btnInventario.isEnabled = false
                 }
             }
         })

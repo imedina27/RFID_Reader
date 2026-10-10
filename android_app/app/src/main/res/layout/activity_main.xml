@@ -120,43 +120,91 @@
             android:layout_width="0dp"
             android:layout_height="20dp" />
 
-        <!-- menu principal: se activa cuando la lectora queda conectada -->
+        <!-- menu principal, cuadricula 2x2: Captura/Salida se activan al
+             conectar la lectora; Prefijos no necesita lectora conectada. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btnCapturaTags"
-                android:layout_width="0dp"
-                android:layout_height="140dp"
-                android:layout_weight="1"
-                android:enabled="false"
-                android:background="@drawable/shape_button_menu"
-                android:gravity="center"
-                android:text="@string/captura_de_tags"
-                android:textAllCaps="false"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_button_menu_text" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnCapturaTags"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_weight="1"
+                    android:enabled="false"
+                    android:background="@drawable/shape_button_menu"
+                    android:gravity="center"
+                    android:text="@string/captura_de_tags"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_button_menu_text" />
+
+                <View
+                    android:layout_width="12dp"
+                    android:layout_height="0dp" />
+
+                <Button
+                    android:id="@+id/btnSalidaRuta"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_weight="1"
+                    android:enabled="false"
+                    android:background="@drawable/shape_button_menu"
+                    android:gravity="center"
+                    android:text="@string/salida_a_ruta"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_button_menu_text" />
+            </LinearLayout>
 
             <View
-                android:layout_width="12dp"
-                android:layout_height="0dp" />
-
-            <Button
-                android:id="@+id/btnSalidaRuta"
                 android:layout_width="0dp"
-                android:layout_height="140dp"
-                android:layout_weight="1"
-                android:enabled="false"
-                android:background="@drawable/shape_button_menu"
-                android:gravity="center"
-                android:text="@string/salida_a_ruta"
-                android:textAllCaps="false"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_button_menu_text" />
+                android:layout_height="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnInventario"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_weight="1"
+                    android:enabled="false"
+                    android:background="@drawable/shape_button_menu"
+                    android:gravity="center"
+                    android:text="@string/inventario_rfid"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_button_menu_text" />
+
+                <View
+                    android:layout_width="12dp"
+                    android:layout_height="0dp" />
+
+                <Button
+                    android:id="@+id/btnPrefijos"
+                    android:layout_width="0dp"
+                    android:layout_height="110dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/shape_button_menu"
+                    android:gravity="center"
+                    android:text="@string/prefijos"
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_button_menu_text" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- etiquetas leídas: oculto por ahora, la lectura real ahora vive en
