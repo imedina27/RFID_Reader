@@ -93,7 +93,7 @@ Esto ya está aplicado en `android_app/app/src/main/AndroidManifest.xml`.
 
 ## 6. Flujo de la APK
 
-> **Estado actual (2026-10-06):** Salida a Ruta y Captura de Tags ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). **Inventario RFID y Prefijos** (2026-10-09) son pantallas de diagnóstico nuevas, locales al teléfono, sin probar aún con hardware real. Falta el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
+> **Estado actual (2026-10-09):** Salida a Ruta y Captura de Tags ya están construidas y probadas con hardware real contra la API real (ya no mandan al receptor de pruebas). **Inventario RFID y Prefijos** son pantallas de diagnóstico, locales al teléfono, probadas con hardware real (incluida la píldora de batería y el nombre real de la lectora en la tarjeta de conexión). Falta el modo simulado (`SimulatedSource`) — ver `ROADMAP.md` Fase 7.
 
 ```text
 Inicio (común):
@@ -200,6 +200,30 @@ acumulada). Las cuatro pantallas de lectura (`CapturaTagsActivity`,
 `onCreate` -- evita el apagado automático solo mientras esa pantalla esta
 en primer plano; no cambia ningun ajuste del sistema ni afecta a otras
 apps, y el usuario sigue pudiendo apagar la pantalla manualmente.
+
+**Píldora de batería de la lectora** (pedido del usuario, 2026-10-09): en
+la tarjeta de conexión del Menú, Captura de Tags, Salida a Ruta e
+Inventario RFID (Palomeo no tiene tarjeta de conexión propia), debajo del
+chip "Conectado"/"Leyendo" aparece una píldora con un ícono de batería por
+nivel (verde >=50%, naranja 20-49%, rojo <20%) y el porcentaje. Usa
+`RfidManager.getBatteryInfo()` para el valor inicial y
+`startBatteryMonitoring()` para que se siga actualizando solo (el SDK ya
+lo consulta cada 5 s). Lógica compartida en `BateriaPildora.kt`. No hay
+ícono de "cargando": se revisó el SDK (`BatteryInfo`, `CsLibrary4A`) y no
+reporta si la lectora está conectada a USB/cargando, y el usuario prefirió
+no inventar esa señal con una heurística (p. ej. "si el % sube, asumir que
+carga") antes que mostrar un dato poco confiable.
+
+**Nombre real de la lectora en la tarjeta** (pedido del usuario,
+2026-10-09, después de renombrarla desde la app oficial de CSL): en
+Captura de Tags, Salida a Ruta e Inventario RFID, el texto fijo "Lectora
+conectada" ahora muestra `rfidManager.getConnectedReader()?.name` (cae de
+vuelta al texto fijo si no hay nombre disponible); "Leyendo…" se queda
+igual. El Menú principal ya mostraba el nombre real desde antes
+(`tvNombreLectora`). La APK no tiene forma de cambiar ese nombre -- se
+hace desde la app oficial de CSL (el SDK sí soporta escribirlo,
+`CsLibrary4A.setBluetoothICFirmwareName()`, pero el wrapper de este
+proyecto, `RfidManager`, no lo expone).
 
 > Contrato completo de endpoints en `docs/api.md`.
 

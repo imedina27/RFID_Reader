@@ -8,9 +8,9 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.csl.rfidsdk.RfidManager
+import com.csl.rfidsdk.callbacks.BatteryCallback
 import com.csl.rfidsdk.callbacks.RfidConfigurationCallback
 import com.csl.rfidsdk.callbacks.RfidConnectionCallback
 import com.csl.rfidsdk.callbacks.RfidInventoryCallback
@@ -47,6 +48,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvNombreLectora: TextView
     private lateinit var chipConexion: TextView
     private lateinit var chipConteo: TextView
+    private lateinit var pildoraBateria: android.view.View
+    private lateinit var ivBateria: ImageView
+    private lateinit var tvBateria: TextView
     private lateinit var btnCapturaTags: Button
     private lateinit var btnSalidaRuta: Button
     private lateinit var btnInventario: Button
@@ -100,6 +104,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val batteryCallback = object : BatteryCallback {
+        override fun onBatteryUpdate(batteryInfo: BatteryInfo) {
+            runOnUiThread { BateriaPildora.actualizar(this@MainActivity, pildoraBateria, ivBateria, tvBateria, batteryInfo) }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -109,6 +119,9 @@ class MainActivity : AppCompatActivity() {
         tvNombreLectora = findViewById(R.id.tvNombreLectora)
         chipConexion = findViewById(R.id.chipConexion)
         chipConteo = findViewById(R.id.chipConteo)
+        pildoraBateria = findViewById(R.id.pildoraBateria)
+        ivBateria = findViewById(R.id.ivBateria)
+        tvBateria = findViewById(R.id.tvBateria)
         btnCapturaTags = findViewById(R.id.btnCapturaTags)
         btnSalidaRuta = findViewById(R.id.btnSalidaRuta)
         btnInventario = findViewById(R.id.btnInventario)
@@ -211,8 +224,8 @@ class MainActivity : AppCompatActivity() {
                     epcsVistos.clear()
                     ultimaActualizacionVisto.clear()
                     aplicarPotencia()
-                    val bateria = rfidManager.getBatteryInfo()
-                    Log.d("RfidSDK", "Bateria de la lectora: ${rfidManager.getBatteryPercentage()}% (${bateria?.formattedVoltage ?: "?"})")
+                    BateriaPildora.actualizar(this@MainActivity, pildoraBateria, ivBateria, tvBateria, rfidManager.getBatteryInfo())
+                    rfidManager.startBatteryMonitoring(batteryCallback)
                     // Justo al conectar, el estado del gatillo que reporta la
                     // lectora puede llegar erroneo por un instante (carrera en
                     // el handshake BLE) y disparar una lectura fantasma. Se
@@ -237,6 +250,7 @@ class MainActivity : AppCompatActivity() {
                     btnCapturaTags.isEnabled = false
                     btnSalidaRuta.isEnabled = false
                     btnInventario.isEnabled = false
+                    pildoraBateria.visibility = android.view.View.GONE
                 }
             }
         })

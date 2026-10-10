@@ -2,7 +2,7 @@
 
 Demo para presentación (no es producción) que verifica con RFID que un camión de reparto sale **con los pallets que pide su boleta de salida, ni más ni menos**, y que permite asociar etiquetas a productos y camiones.
 
-**Versión:** 0.22.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) **completa** (Tablero con panel en vivo del escaneo, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta, Alarmas y Prefijos — lista blanca de EPC); la APK tiene **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real (S24 Ultra + CS108-2), e ícono propio con el isotipo de Quantum Labs. Menú principal en cuadrícula 2x2 con dos pantallas de diagnóstico nuevas, **Inventario RFID** y **Prefijos** (ambas locales al teléfono, sin tocar la API ni la base de datos). Falta el modo simulado de la APK (ver `docs/apk.md` y `ROADMAP.md`).
+**Versión:** 0.23.0 · **Estado:** entorno (Fase 3) y backend (Fase 4) completos; interfaz PyQt6 (Fase 5) **completa** (Tablero con panel en vivo del escaneo, Productos, Camiones, Pallets, Boletas de salida, Salidas a ruta, Alarmas y Prefijos — lista blanca de EPC); la APK tiene **Captura de Tags y Salida a Ruta completas**, probadas de punta a punta con hardware real contra la API real (S24 Ultra + CS108-2), e ícono propio con el isotipo de Quantum Labs. Menú principal en cuadrícula 2x2 con dos pantallas de diagnóstico nuevas, **Inventario RFID** y **Prefijos** (ambas locales al teléfono, sin tocar la API ni la base de datos). Las 4 pantallas con tarjeta de conexión muestran el nombre real de la lectora y una píldora con el nivel de batería. Falta el modo simulado de la APK (ver `docs/apk.md` y `ROADMAP.md`).
 
 ## Cómo funciona
 

@@ -7,9 +7,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). V
 
 ## [Sin publicar]
 
+## [0.23.0] - 2026-10-09
+
 ### Añadido
 
-- *(nada por ahora)*
+- **Píldora de batería de la lectora** en la tarjeta de conexión del Menú, Captura de Tags, Salida a Ruta e Inventario RFID: ícono con nivel (verde ≥50%, naranja 20-49%, rojo <20%, `ic_battery_full/medium/low.xml`) + porcentaje, debajo del chip de estado. Usa `RfidManager.getBatteryInfo()`/`startBatteryMonitoring()` del SDK; lógica compartida en el nuevo `BateriaPildora.kt`. Se mostró un MOK (Artifact) antes de programar, aprobado por el usuario. Sin ícono de "cargando": el SDK (`BatteryInfo`, `CsLibrary4A`) no reporta ese dato, y el usuario prefirió no inventarlo con una heurística.
+
+### Cambiado
+
+- **Nombre real de la lectora en la tarjeta de conexión**: en Captura de Tags, Salida a Ruta e Inventario RFID, el texto fijo "Lectora conectada" ahora muestra el nombre configurado en la lectora (`rfidManager.getConnectedReader()?.name`, con el texto fijo como respaldo); "Leyendo…" no cambia. Pedido tras que el usuario renombrara la lectora desde la app oficial de CSL.
+
+### Documentación
+
+- `docs/lectora.md`: nueva sección "Qué más puede hacer y parámetros de software (SDK)" — capacidades del CS108-2 más allá de leer EPC (Geiger search, código de barras, batería, etc.), tabla de parámetros configurables vía `RfidManager.configure()` (potencia, sesión, target, Q, región, etc.) indicando cuáles usa esta APK, y una explicación de los 4 bancos de memoria del TAG y los comandos `Write`/`Lock`/`Kill` (qué hacen y por qué están prohibidos en este proyecto, ver `CLAUDE.md` 5.1). Investigación a partir del código del wrapper `csl-rfid-android-sdk` y del SDK de bajo nivel `cslibrary4a`, pedida por el usuario.
+- `ROADMAP.md` (encabezado y Fase 7) actualizado con la píldora de batería y el nombre real de la lectora.
 
 ## [0.22.0] - 2026-10-09
 

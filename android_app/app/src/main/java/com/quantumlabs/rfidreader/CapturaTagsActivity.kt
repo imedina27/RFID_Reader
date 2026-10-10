@@ -9,12 +9,14 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.csl.rfidsdk.callbacks.BatteryCallback
 import com.csl.rfidsdk.callbacks.RfidInventoryCallback
 import com.csl.rfidsdk.callbacks.TriggerCallback
 import com.csl.rfidsdk.config.RfidStopReason
@@ -36,6 +38,9 @@ class CapturaTagsActivity : AppCompatActivity() {
     private lateinit var tarjetaConexion: View
     private lateinit var tvEstadoTarjeta: TextView
     private lateinit var chipConexion: TextView
+    private lateinit var pildoraBateria: View
+    private lateinit var ivBateria: ImageView
+    private lateinit var tvBateria: TextView
     private lateinit var etTag: EditText
     private lateinit var contenedorProducto: View
     private lateinit var spProducto: Spinner
@@ -73,6 +78,12 @@ class CapturaTagsActivity : AppCompatActivity() {
         override fun onBatteryUpdate(batteryInfo: BatteryInfo) = Unit
     }
 
+    private val batteryCallback = object : BatteryCallback {
+        override fun onBatteryUpdate(batteryInfo: BatteryInfo) {
+            runOnUiThread { BateriaPildora.actualizar(this@CapturaTagsActivity, pildoraBateria, ivBateria, tvBateria, batteryInfo) }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_captura_tags)
@@ -85,6 +96,9 @@ class CapturaTagsActivity : AppCompatActivity() {
         tarjetaConexion = findViewById(R.id.tarjetaConexion)
         tvEstadoTarjeta = findViewById(R.id.tvEstadoTarjeta)
         chipConexion = findViewById(R.id.chipConexion)
+        pildoraBateria = findViewById(R.id.pildoraBateria)
+        ivBateria = findViewById(R.id.ivBateria)
+        tvBateria = findViewById(R.id.tvBateria)
         etTag = findViewById(R.id.etTag)
         contenedorProducto = findViewById(R.id.contenedorProducto)
         spProducto = findViewById(R.id.spProducto)
@@ -108,6 +122,8 @@ class CapturaTagsActivity : AppCompatActivity() {
         super.onResume()
         if (rfidManager.isConnected) {
             rfidManager.enableTrigger(triggerCallback, false)
+            BateriaPildora.actualizar(this, pildoraBateria, ivBateria, tvBateria, rfidManager.getBatteryInfo())
+            rfidManager.startBatteryMonitoring(batteryCallback)
         } else {
             Toast.makeText(this, "La lectora se desconectó", Toast.LENGTH_LONG).show()
             finish()
@@ -162,7 +178,7 @@ class CapturaTagsActivity : AppCompatActivity() {
             chipConexion.text = getString(R.string.leyendo_punto)
         } else {
             tarjetaConexion.setBackgroundResource(R.drawable.shape_card)
-            tvEstadoTarjeta.text = getString(R.string.lectora_conectada)
+            tvEstadoTarjeta.text = rfidManager.getConnectedReader()?.name ?: getString(R.string.lectora_conectada)
             tvEstadoTarjeta.setTextColor(ContextCompat.getColor(this, R.color.color_text))
             chipConexion.text = "Conectado"
         }

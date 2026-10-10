@@ -6,6 +6,7 @@ import android.media.ToneGenerator
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.csl.rfidsdk.callbacks.BatteryCallback
 import com.csl.rfidsdk.callbacks.RfidInventoryCallback
 import com.csl.rfidsdk.callbacks.TriggerCallback
 import com.csl.rfidsdk.config.RfidStopReason
@@ -35,6 +37,9 @@ class InventarioActivity : AppCompatActivity() {
     private lateinit var tarjetaConexion: View
     private lateinit var tvEstadoTarjeta: TextView
     private lateinit var chipConexion: TextView
+    private lateinit var pildoraBateria: View
+    private lateinit var ivBateria: ImageView
+    private lateinit var tvBateria: TextView
     private lateinit var switchPrefijos: SwitchCompat
     private lateinit var tvTotalLecturas: TextView
     private lateinit var adapter: InventarioAdapter
@@ -71,6 +76,12 @@ class InventarioActivity : AppCompatActivity() {
         override fun onBatteryUpdate(batteryInfo: BatteryInfo) = Unit
     }
 
+    private val batteryCallback = object : BatteryCallback {
+        override fun onBatteryUpdate(batteryInfo: BatteryInfo) {
+            runOnUiThread { BateriaPildora.actualizar(this@InventarioActivity, pildoraBateria, ivBateria, tvBateria, batteryInfo) }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inventario)
@@ -85,6 +96,9 @@ class InventarioActivity : AppCompatActivity() {
         tarjetaConexion = findViewById(R.id.tarjetaConexion)
         tvEstadoTarjeta = findViewById(R.id.tvEstadoTarjeta)
         chipConexion = findViewById(R.id.chipConexion)
+        pildoraBateria = findViewById(R.id.pildoraBateria)
+        ivBateria = findViewById(R.id.ivBateria)
+        tvBateria = findViewById(R.id.tvBateria)
         switchPrefijos = findViewById(R.id.switchPrefijos)
         tvTotalLecturas = findViewById(R.id.tvTotalLecturas)
 
@@ -109,6 +123,8 @@ class InventarioActivity : AppCompatActivity() {
         prefijosGuardados = Preferencias.prefijos(this)
         reiniciarLista()
         rfidManager.enableTrigger(triggerCallback, false)
+        BateriaPildora.actualizar(this, pildoraBateria, ivBateria, tvBateria, rfidManager.getBatteryInfo())
+        rfidManager.startBatteryMonitoring(batteryCallback)
     }
 
     override fun onPause() {
@@ -193,7 +209,7 @@ class InventarioActivity : AppCompatActivity() {
             chipConexion.text = getString(R.string.leyendo_punto)
         } else {
             tarjetaConexion.setBackgroundResource(R.drawable.shape_card)
-            tvEstadoTarjeta.text = getString(R.string.lectora_conectada)
+            tvEstadoTarjeta.text = rfidManager.getConnectedReader()?.name ?: getString(R.string.lectora_conectada)
             tvEstadoTarjeta.setTextColor(ContextCompat.getColor(this, R.color.color_text))
             chipConexion.text = "Conectado"
         }
